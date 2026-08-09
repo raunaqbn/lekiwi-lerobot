@@ -435,7 +435,8 @@ function render(state) {
   const counts = state.system_counts;
   const attention = counts.warning + counts.critical;
   const bothConnected = state.connected_sources === 2;
-  const embedded = state.sample_mode === "embedded_control_loop";
+  const hostEmbedded = state.sample_mode === "embedded_host_control_loop";
+  const embedded = state.sample_mode === "embedded_control_loop" || hostEmbedded;
 
   elements.headerDot.dataset.severity = state.system_overall;
   elements.headerState.textContent = bothConnected
@@ -445,8 +446,10 @@ function render(state) {
       : "Robot sources offline";
 
   elements.connectionIcon.dataset.state = state.connected ? "connected" : state.autodetecting ? "searching" : "attention";
-  elements.connectionTitle.textContent = embedded ? "Telemetry embedded in teleoperation" : state.connected ? "Local motor bus connected" : state.autodetecting ? "Finding the leader arm" : "Leader arm is not connected";
-  elements.connectionDetail.textContent = embedded
+  elements.connectionTitle.textContent = hostEmbedded ? "Follower owner loop online" : embedded ? "Telemetry embedded in teleoperation" : state.connected ? "Local motor bus connected" : state.autodetecting ? "Finding the leader arm" : "Leader arm is not connected";
+  elements.connectionDetail.textContent = hostEmbedded
+    ? "The Raspberry Pi owns the follower bus; browser intent is consumed inside that same safety loop."
+    : embedded
     ? "Teleoperation exclusively owns both serial buses; this dashboard only reads cached snapshots."
     : state.connected
     ? "The Mac USB feed is live; follower telemetry is handled separately through the Pi."

@@ -32,8 +32,11 @@ from .live_diagnostics import (
     BusLease,
     CachedDiagnosticsServer,
     EmbeddedDiagnosticsConfig,
+    FollowerHostSnapshotProvider,
     LiveDiagnosticsSampler,
+    MutableCameraFrameCache,
     ProtocolCompatibilityError,
+    TeleopControlBridge,
 )
 
 
@@ -113,9 +116,12 @@ def main(cfg: LeKiwiServerConfig):
             num_read_retries=cfg.robot.num_read_retries,
         ),
     )
+    camera_cache = MutableCameraFrameCache(tuple(robot.cameras))
+    dashboard_controls = TeleopControlBridge(exclusive_base=True)
     if cfg.host.diagnostics_enabled:
+        dashboard = FollowerHostSnapshotProvider(diagnostics, camera_cache, dashboard_controls)
         diagnostics_server = CachedDiagnosticsServer(
-            diagnostics, cfg.host.diagnostics_host, cfg.host.diagnostics_port
+            dashboard, cfg.host.diagnostics_host, cfg.host.diagnostics_port
         )
         diagnostics_server.start()
         logging.info(
@@ -130,6 +136,8 @@ def main(cfg: LeKiwiServerConfig):
     last_cmd_time = time.time()
     watchdog_active = False
     last_observation = None
+    last_client_action = None
+    last_control_revision = dashboard_controls.status()["revision"]
     logging.info("Waiting for commands...")
     try:
         # Business logic
@@ -137,6 +145,7 @@ def main(cfg: LeKiwiServerConfig):
         duration = 0
         while host.connection_time_s <= 0 or duration < host.connection_time_s:
             loop_start_time = time.time()
+            client_action_pending = False
             try:
                 msg = host.zmq_cmd_socket.recv_string(zmq.NOBLOCK)
                 envelope = dict(json.loads(msg))
@@ -149,7 +158,8 @@ def main(cfg: LeKiwiServerConfig):
                     )
                 if envelope.get("_kind") != "action" or not isinstance(envelope.get("action"), dict):
                     raise RuntimeError("Invalid LeKiwi command envelope")
-                _action_sent = robot.send_action(envelope["action"])
+                last_client_action = dict(envelope["action"])
+                client_action_pending = True
                 last_cmd_time = time.time()
                 watchdog_active = False
             except zmq.Again:
@@ -192,6 +202,34 @@ def main(cfg: LeKiwiServerConfig):
                 duration = time.perf_counter() - start
                 continue
 
+            observed_arm = {
+                key: float(value)
+                for key, value in last_observation.items()
+                if key.startswith("arm_") and key.endswith(".pos")
+            }
+            zero_base = {"x.vel": 0.0, "y.vel": 0.0, "theta.vel": 0.0}
+            client_is_fresh = (
+                last_client_action is not None
+                and time.time() - last_cmd_time <= host.watchdog_timeout_ms / 1000
+            )
+            baseline = dict(last_client_action) if client_is_fresh else {**observed_arm, **zero_base}
+            arm_action = {key: value for key, value in baseline.items() if key.endswith(".pos")}
+            base_action = {key: value for key, value in baseline.items() if key.endswith(".vel")}
+            control_status = dashboard_controls.status()
+            control_changed = control_status["revision"] != last_control_revision
+            control_active = control_status["enabled"] or control_status["stop_latched"]
+            if client_action_pending or control_active or control_changed:
+                arm_action, base_action = dashboard_controls.apply(
+                    arm_action,
+                    base_action,
+                    last_observation,
+                )
+                robot.send_action({**arm_action, **base_action})
+                last_control_revision = dashboard_controls.status()["revision"]
+                if control_active:
+                    last_cmd_time = time.time()
+                    watchdog_active = False
+
             # Send one multipart message: a JSON header frame (state + camera
             # order) followed by one raw JPEG frame per camera. Raw JPEG avoids
             # the 33% base64 inflation of embedding binary data in JSON.
@@ -202,7 +240,10 @@ def main(cfg: LeKiwiServerConfig):
                 ret, jpeg = cv2.imencode(
                     ".jpg", observation_to_send.pop(cam_key), [int(cv2.IMWRITE_JPEG_QUALITY), 90]
                 )
-                jpeg_frames.append(jpeg if ret else b"")
+                encoded = bytes(jpeg) if ret else b""
+                jpeg_frames.append(encoded)
+                if encoded:
+                    camera_cache.publish(cam_key, encoded)
             header = {
                 "_protocol": PROTOCOL_VERSION,
                 "_diagnostics": diagnostics.snapshot(),

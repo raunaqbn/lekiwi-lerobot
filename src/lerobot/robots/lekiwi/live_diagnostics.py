@@ -626,8 +626,9 @@ class TeleopControlBridge:
         {"label": "fast", "xy": 0.25, "theta": 75.0},
     )
 
-    def __init__(self, pulse_s: float = CONTROL_PULSE_S):
+    def __init__(self, pulse_s: float = CONTROL_PULSE_S, *, exclusive_base: bool = False):
         self.pulse_s = pulse_s
+        self.exclusive_base = exclusive_base
         self._lock = threading.RLock()
         self._enabled = False
         self._permitted = False
@@ -640,15 +641,20 @@ class TeleopControlBridge:
         self._arm_targets: dict[str, float] | None = None
         self._last_apply_at: float | None = None
         self._last_command_at: str | None = None
+        self._revision = 0
 
     def set_permitted(self, permitted: bool, reason: str) -> None:
         with self._lock:
+            previous = (self._permitted, self._permit_reason, self._enabled, self._arm_takeover)
             self._permitted = bool(permitted)
             self._permit_reason = reason
             if not self._permitted:
                 self._enabled = False
                 self._arm_takeover = False
                 self._clear_motion_locked()
+            current = (self._permitted, self._permit_reason, self._enabled, self._arm_takeover)
+            if current != previous:
+                self._revision += 1
 
     def set_enabled(self, enabled: bool) -> None:
         with self._lock:
@@ -719,6 +725,7 @@ class TeleopControlBridge:
 
     def _touch_locked(self) -> None:
         self._last_command_at = utc_now()
+        self._revision += 1
 
     def _clear_motion_locked(self) -> None:
         self._base_expiry.clear()
@@ -770,7 +777,12 @@ class TeleopControlBridge:
                 return dict(arm_action), dict(base_action)
 
             keys = self._fresh_base_keys_locked(now)
-            merged_base = self._base_action_locked(keys) if keys else dict(base_action)
+            if keys:
+                merged_base = self._base_action_locked(keys)
+            elif self.exclusive_base:
+                merged_base = {"x.vel": 0.0, "y.vel": 0.0, "theta.vel": 0.0}
+            else:
+                merged_base = dict(base_action)
 
             if not self._arm_takeover:
                 self._arm_targets = None
@@ -810,6 +822,8 @@ class TeleopControlBridge:
                 "theta_speed_deg_s": speed["theta"],
                 "last_command_at": self._last_command_at,
                 "deadman_timeout_s": self.pulse_s,
+                "exclusive_base": self.exclusive_base,
+                "revision": self._revision,
             }
 
 
@@ -935,6 +949,56 @@ class AggregateSnapshotProvider:
         self.follower.reset_odometry()
 
 
+class FollowerHostSnapshotProvider:
+    """Aggregate-shaped cached state for the Pi-resident browser fallback.
+
+    The follower host remains the only motor-bus owner.  HTTP handlers mutate
+    only :class:`TeleopControlBridge`; the host loop consumes that intent and
+    performs all hardware access synchronously.
+    """
+
+    def __init__(
+        self,
+        follower: SnapshotProvider,
+        cameras: MutableCameraFrameCache,
+        controls: TeleopControlBridge,
+    ):
+        self.follower = follower
+        self.cameras = cameras
+        self.controls = controls
+
+    @staticmethod
+    def _control_permission(follower: dict[str, Any]) -> tuple[bool, str]:
+        if not follower.get("connected") or follower.get("stale"):
+            return False, "Follower telemetry is stale or offline."
+        if follower.get("power", {}).get("servo_rail") != "powered":
+            return False, "Follower servo power is not detected."
+        if follower.get("counts", {}).get("critical", 0):
+            return False, "Resolve critical follower motor faults before enabling controls."
+        if follower.get("counts", {}).get("detected") != follower.get("counts", {}).get("expected"):
+            return False, "All nine follower motors must be responding."
+        return True, "The follower owner loop is ready for dead-man browser control."
+
+    def snapshot(self) -> dict[str, Any]:
+        follower = self.follower.snapshot()
+        leader = _empty_cached_source("leader")
+        leader["source_label"] = "Remote leader / browser"
+        leader["error"] = "Leader telemetry is available only while a remote teleop client is connected."
+        combined = combine_snapshots(leader, follower, "embedded://follower-host")
+        combined["schema_version"] = SCHEMA_VERSION
+        combined["protocol_version"] = PROTOCOL_VERSION
+        combined["sample_mode"] = "embedded_host_control_loop"
+        combined["read_only"] = False
+        combined["cameras"] = self.cameras.status()
+        permitted, reason = self._control_permission(follower)
+        self.controls.set_permitted(permitted, reason)
+        combined["control"] = self.controls.status()
+        return combined
+
+    def reset_odometry(self) -> None:
+        self.follower.reset_odometry()
+
+
 def create_cached_app(provider: SnapshotProvider) -> Flask:
     """Create an HTTP/SSE app whose handlers only copy cached snapshots."""
     app = Flask(__name__)
@@ -975,13 +1039,24 @@ def create_cached_app(provider: SnapshotProvider) -> Flask:
         if camera_cache is None or name not in camera_cache.names:
             return jsonify({"ok": False, "error": f"Camera {name!r} is not available"}), 404
 
+        try:
+            requested_fps = float(request.args.get("fps", 12.0))
+        except ValueError:
+            requested_fps = 12.0
+        stream_fps = min(15.0, max(1.0, requested_fps))
+
         def frames():
             revision = -1
+            last_emit = 0.0
             while True:
                 sample = camera_cache.wait_for_frame(name, revision, timeout_s=2.0)
                 if sample is None:
                     continue
                 jpeg, revision = sample
+                remaining = 1.0 / stream_fps - (time.monotonic() - last_emit)
+                if remaining > 0:
+                    time.sleep(remaining)
+                last_emit = time.monotonic()
                 yield (
                     b"--frame\r\nContent-Type: image/jpeg\r\nCache-Control: no-store\r\n\r\n" + jpeg + b"\r\n"
                 )

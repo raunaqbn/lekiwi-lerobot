@@ -15,6 +15,7 @@ from lerobot.robots.lekiwi.live_diagnostics import (
     BusLease,
     BusOwnedError,
     EmbeddedDiagnosticsConfig,
+    FollowerHostSnapshotProvider,
     LiveDiagnosticsSampler,
     MutableCameraFrameCache,
     MutableSnapshotCache,
@@ -300,6 +301,36 @@ def test_dashboard_base_controls_are_deadman_pulses():
     assert expired["theta.vel"] == 0.0
 
 
+def test_follower_host_browser_base_is_exclusive_and_stops_on_release():
+    bridge = TeleopControlBridge(pulse_s=0.35, exclusive_base=True)
+    bridge.set_permitted(True, "ready")
+    bridge.set_enabled(True)
+    arm = dict.fromkeys(
+        (
+            "arm_shoulder_pan.pos",
+            "arm_shoulder_lift.pos",
+            "arm_elbow_flex.pos",
+            "arm_wrist_flex.pos",
+            "arm_wrist_roll.pos",
+            "arm_gripper.pos",
+        ),
+        0.0,
+    )
+    now = time.monotonic()
+    _arm, stopped = bridge.apply(
+        arm,
+        {"x.vel": 0.25, "y.vel": 0.0, "theta.vel": 0.0},
+        arm,
+        now=now,
+    )
+    assert stopped == {"x.vel": 0.0, "y.vel": 0.0, "theta.vel": 0.0}
+    bridge.pulse_base("w", True)
+    _arm, moving = bridge.apply(arm, stopped, arm, now=now)
+    assert moving["x.vel"] > 0
+    _arm, expired = bridge.apply(arm, moving, arm, now=now + 1.0)
+    assert expired == {"x.vel": 0.0, "y.vel": 0.0, "theta.vel": 0.0}
+
+
 def test_arm_takeover_starts_from_follower_pose_and_jogs_gradually():
     bridge = TeleopControlBridge()
     bridge.set_permitted(True, "ready")
@@ -390,3 +421,41 @@ def test_camera_stream_serves_cached_jpeg_without_hardware_access():
     response.close()
     assert b"Content-Type: image/jpeg" in first
     assert b"fake-jpeg" in first
+
+
+class StaticFollowerProvider:
+    def snapshot(self):
+        return {
+            "schema_version": "2.0",
+            "source": "follower",
+            "connected": True,
+            "stale": False,
+            "counts": {
+                "expected": 9,
+                "detected": 9,
+                "healthy": 9,
+                "warning": 0,
+                "critical": 0,
+                "unpowered": 0,
+            },
+            "power": {"servo_rail": "powered"},
+            "motors": [],
+            "odometry": {"x": 0.0, "y": 0.0, "theta": 0.0},
+        }
+
+    def reset_odometry(self):
+        pass
+
+
+def test_follower_host_provider_allows_control_without_opening_a_leader_bus():
+    controls = TeleopControlBridge(exclusive_base=True)
+    provider = FollowerHostSnapshotProvider(
+        StaticFollowerProvider(),
+        MutableCameraFrameCache(("front", "wrist")),
+        controls,
+    )
+    state = provider.snapshot()
+    assert state["sample_mode"] == "embedded_host_control_loop"
+    assert state["sources"]["leader"]["connected"] is False
+    assert state["control"]["permitted"] is True
+    assert state["control"]["exclusive_base"] is True
