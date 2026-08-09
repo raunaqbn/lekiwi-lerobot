@@ -22,6 +22,26 @@ const SEVERITY_COLORS = {
   offline: 0x97a1b4,
 };
 
+// Compatibility for a dashboard attached to a teleoperation process that was
+// started before the backend began publishing JOINT_FRAME.  New snapshots are
+// already authoritative; old in-flight snapshots are converted exactly once.
+const JOINT_FRAME = "lekiwi-fusion-cad-v1";
+const LEGACY_CAD_TRANSFORMS = {
+  arm_shoulder_pan: [1, 0],
+  arm_shoulder_lift: [-1, -Math.PI / 2],
+  arm_elbow_flex: [-1, Math.PI / 2],
+  arm_wrist_flex: [-1, Math.PI / 2],
+  arm_wrist_roll: [1, 0],
+  arm_gripper: [1, 0],
+};
+
+function modelRadians(motor) {
+  const radians = motor?.joint_position_rad;
+  if (!Number.isFinite(radians) || latestFollower?.joint_frame === JOINT_FRAME) return radians;
+  const [scale, offset] = LEGACY_CAD_TRANSFORMS[motor.name] || [1, 0];
+  return scale * radians + offset;
+}
+
 const canvas = document.querySelector("#robot-canvas");
 const stage = document.querySelector("#twin-stage");
 const loading = document.querySelector("#twin-loading");
@@ -64,8 +84,9 @@ function updateInspector(name = selectedMotorName) {
   selectedId.textContent = `Follower · ID ${String(motor.id).padStart(2, "0")}`;
   selectedVoltage.textContent = format(motor.voltage_v, " V");
   selectedTemp.textContent = format(motor.temperature_c, " °C");
-  selectedPosition.textContent = Number.isFinite(motor.joint_position_rad)
-    ? `${motor.joint_position_rad.toFixed(3)} rad · ${format(motor.position_deg, "°")}`
+  const radians = modelRadians(motor);
+  selectedPosition.textContent = Number.isFinite(radians)
+    ? `${radians.toFixed(3)} rad · ${format(motor.position_deg, "°")}`
     : "—";
   selectedTorque.textContent = motor.torque_enabled == null ? "—" : motor.torque_enabled ? "Enabled" : "Disabled";
   hotspots.forEach((button, motorName) => button.classList.toggle("is-selected", motorName === name));
@@ -140,7 +161,7 @@ function tintRobot() {
 function applyTelemetry() {
   if (!robot || !latestFollower) return;
   latestFollower.motors.forEach((motor) => {
-    const radians = motor.joint_position_rad;
+    const radians = modelRadians(motor);
     if (Number.isFinite(radians) && robot.joints[motor.name]) robot.setJointValue(motor.name, radians);
   });
   const odometry = latestFollower.odometry || { x: 0, y: 0, theta: 0 };

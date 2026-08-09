@@ -40,6 +40,7 @@ from .diagnostics import (
 
 SCHEMA_VERSION = "2.0"
 PROTOCOL_VERSION = "lekiwi-v061-live-telemetry-v1"
+JOINT_FRAME = "lekiwi-fusion-cad-v1"
 STALE_AFTER_S = 2.0
 
 FOLLOWER_NAMES = (
@@ -73,14 +74,17 @@ LABELS = {
     "base_right_wheel": "Right wheel",
 }
 
-# Calibration-aware LeRobot angles are already expressed around the configured
-# zero.  Keep the transform explicit so a supervised lifted test can document a
-# CAD-only sign/origin correction without altering motor calibration.
+# The LeKiwi Fusion export uses a different axis/origin convention from the
+# current LeRobot SO-101 calibration frame.  These transforms were derived by
+# matching the Fusion joint chain to the official ``so101_new_calib.urdf`` and
+# visually checked against the stationary physical leader/follower pose.  They
+# affect telemetry visualization only; motor calibration and commands remain
+# unchanged.
 JOINT_TRANSFORMS: dict[str, tuple[float, float]] = {
     "arm_shoulder_pan": (1.0, 0.0),
-    "arm_shoulder_lift": (1.0, 0.0),
-    "arm_elbow_flex": (1.0, 0.0),
-    "arm_wrist_flex": (1.0, 0.0),
+    "arm_shoulder_lift": (-1.0, -math.pi / 2),
+    "arm_elbow_flex": (-1.0, math.pi / 2),
+    "arm_wrist_flex": (-1.0, math.pi / 2),
     "arm_wrist_roll": (1.0, 0.0),
     "arm_gripper": (1.0, 0.0),
     "base_left_wheel": (1.0, 0.0),
@@ -423,6 +427,7 @@ class LiveDiagnosticsSampler:
             return {
                 "schema_version": SCHEMA_VERSION,
                 "protocol_version": PROTOCOL_VERSION,
+                "joint_frame": JOINT_FRAME,
                 "sample_mode": "embedded_control_loop",
                 "source": self.config.role,
                 "source_label": "Leader arm" if self.config.role == "leader" else "Follower robot",

@@ -9,6 +9,7 @@ import pytest
 from lerobot.robots.lekiwi.lekiwi_client import LeKiwiClient, ProtocolCompatibilityError
 from lerobot.robots.lekiwi.live_diagnostics import (
     HEALTH_REGISTERS,
+    JOINT_FRAME,
     PROTOCOL_VERSION,
     BusLease,
     BusOwnedError,
@@ -56,8 +57,10 @@ class FakeBus:
 
 
 def test_calibrated_arm_degrees_are_authoritative_radians():
-    assert calibrated_degrees_to_radians("arm_elbow_flex", 90) == pytest.approx(math.pi / 2)
-    assert calibrated_degrees_to_radians("arm_elbow_flex", -45) == pytest.approx(-math.pi / 4)
+    assert calibrated_degrees_to_radians("arm_shoulder_pan", 90) == pytest.approx(math.pi / 2)
+    assert calibrated_degrees_to_radians("arm_shoulder_lift", -90) == pytest.approx(0)
+    assert calibrated_degrees_to_radians("arm_elbow_flex", 90) == pytest.approx(0)
+    assert calibrated_degrees_to_radians("arm_wrist_flex", -90) == pytest.approx(math.pi)
 
 
 def test_gripper_uses_recorded_raw_span():
@@ -101,6 +104,7 @@ def test_sampler_integrates_continuous_wheel_angle_and_publishes_joint_radians(m
     gripper = next(motor for motor in state["motors"] if motor["name"] == "arm_gripper")
     assert gripper["joint_position_rad"] is not None
     assert state["schema_version"] == "2.0"
+    assert state["joint_frame"] == JOINT_FRAME
     assert state["sample_mode"] == "embedded_control_loop"
     assert state["pose_interval_ms"] == pytest.approx(1000.0)
     assert state["max_pose_interval_ms"] == pytest.approx(1000.0)
