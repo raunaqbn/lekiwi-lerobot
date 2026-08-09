@@ -79,6 +79,11 @@ class LeKiwi(Robot):
                 "The host/client transport only carries color frames."
             )
         self.cameras = make_cameras_from_configs(config.cameras)
+        # Cached by the control loop for embedded diagnostics.  No background
+        # thread is allowed to read the serial bus.
+        self.last_arm_position: dict[str, float] = {}
+        self.last_base_wheel_velocity: dict[str, float] = {}
+        self.last_body_velocity: dict[str, float] = {}
 
     @property
     def _state_ft(self) -> dict[str, type]:
@@ -360,6 +365,10 @@ class LeKiwi(Robot):
             base_wheel_vel["base_right_wheel"],
         )
 
+        self.last_arm_position = dict(arm_pos)
+        self.last_base_wheel_velocity = dict(base_wheel_vel)
+        self.last_body_velocity = dict(base_vel)
+
         arm_state = {f"{k}.pos": v for k, v in arm_pos.items()}
 
         obs_dict = {**arm_state, **base_vel}
@@ -404,7 +413,10 @@ class LeKiwi(Robot):
             present_pos = self.bus.sync_read(
                 "Present_Position", self.arm_motors, num_retry=self.config.num_read_retries
             )
-            goal_present_pos = {key: (g_pos, present_pos[key]) for key, g_pos in arm_goal_pos.items()}
+            goal_present_pos = {
+                key: (g_pos, present_pos[key.removesuffix(".pos")])
+                for key, g_pos in arm_goal_pos.items()
+            }
             arm_safe_goal_pos = ensure_safe_goal_position(goal_present_pos, self.config.max_relative_target)
             arm_goal_pos = arm_safe_goal_pos
 
@@ -421,7 +433,10 @@ class LeKiwi(Robot):
 
     @check_if_not_connected
     def disconnect(self):
-        self.stop_base()
+        try:
+            self.stop_base()
+        except Exception as exc:
+            logger.warning("Base stop command failed during disconnect: %s", exc)
         self.bus.disconnect(self.config.disable_torque_on_disconnect)
         for cam in self.cameras.values():
             cam.disconnect()

@@ -28,6 +28,7 @@ from lerobot.utils.errors import DeviceNotConnectedError
 
 from ..robot import Robot
 from .config_lekiwi import LeKiwiClientConfig
+from .live_diagnostics import PROTOCOL_VERSION, MutableSnapshotCache, ProtocolCompatibilityError
 
 
 class LeKiwiClient(Robot):
@@ -66,6 +67,8 @@ class LeKiwiClient(Robot):
         self.last_frames = {}
 
         self.last_remote_state = {}
+        self.diagnostics_cache = MutableSnapshotCache("follower")
+        self._pending_frames: list[bytes] | None = None
 
         # Define three speed levels and a current index
         self.speed_levels = [
@@ -143,6 +146,10 @@ class LeKiwiClient(Robot):
         if self.zmq_observation_socket not in socks or socks[self.zmq_observation_socket] != zmq.POLLIN:
             raise DeviceNotConnectedError("Timeout waiting for LeKiwi Host to connect expired.")
 
+        first_frames = self.zmq_observation_socket.recv_multipart()
+        self._validate_protocol(first_frames)
+        self._pending_frames = first_frames
+
         self._is_connected = True
 
     def calibrate(self) -> None:
@@ -150,6 +157,10 @@ class LeKiwiClient(Robot):
 
     def _poll_and_get_latest_message(self) -> list[bytes] | None:
         """Polls the ZMQ socket for a limited time and returns the latest message's frames."""
+        if self._pending_frames is not None:
+            frames = self._pending_frames
+            self._pending_frames = None
+            return frames
         zmq = self._zmq
         poller = zmq.Poller()
         poller.register(self.zmq_observation_socket, zmq.POLLIN)
@@ -177,15 +188,38 @@ class LeKiwiClient(Robot):
 
         return last_msg
 
+    def _validate_protocol(self, frames: list[bytes]) -> None:
+        try:
+            header = json.loads(frames[0])
+        except (json.JSONDecodeError, IndexError) as exc:
+            raise ProtocolCompatibilityError("LeKiwi host sent an invalid observation header") from exc
+        received = header.get("_protocol")
+        if received != PROTOCOL_VERSION:
+            raise ProtocolCompatibilityError(
+                "Incompatible LeKiwi host/client protocol: "
+                f"Mac requires {PROTOCOL_VERSION!r}, Pi sent {received!r}. "
+                "Start the matching v0.6.1 Mac client and Pi host together."
+            )
+
     def _parse_observation(self, frames: list[bytes]) -> RobotObservation | None:
         """Parses a multipart observation: JSON header + one raw JPEG frame per camera."""
         try:
             header = json.loads(frames[0])
+            received = header.pop("_protocol", None)
+            if received != PROTOCOL_VERSION:
+                raise ProtocolCompatibilityError(
+                    f"LeKiwi protocol changed while connected: expected {PROTOCOL_VERSION!r}, got {received!r}"
+                )
+            diagnostics = header.pop("_diagnostics", None)
+            if isinstance(diagnostics, dict):
+                self.diagnostics_cache.publish(diagnostics)
             cam_names = header.pop("_cams")
             observation: RobotObservation = header
             for cam_name, jpeg in zip(cam_names, frames[1:], strict=True):
                 observation[cam_name] = jpeg
             return observation
+        except ProtocolCompatibilityError:
+            raise
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             logging.error(f"Error decoding observation: {e}")
             return None
@@ -275,6 +309,10 @@ class LeKiwiClient(Robot):
 
         return obs_dict
 
+    @property
+    def latest_diagnostics(self) -> dict:
+        return self.diagnostics_cache.snapshot()
+
     def _from_keyboard_to_base_action(self, pressed_keys: np.ndarray):
         # Speed control
         if self.teleop_keys["speed_up"] in pressed_keys:
@@ -327,7 +365,8 @@ class LeKiwiClient(Robot):
         # scalars; json.dumps only serializes Python primitives, so coerce each value to a
         # plain float before sending.
         action = {key: float(value) for key, value in action.items()}
-        self.zmq_cmd_socket.send_string(json.dumps(action))  # action is in motor space
+        envelope = {"_protocol": PROTOCOL_VERSION, "_kind": "action", "action": action}
+        self.zmq_cmd_socket.send_string(json.dumps(envelope))
 
         # TODO(Steven): Remove the np conversion when it is possible to record a non-numpy array value
         actions = np.array([action.get(k, 0.0) for k in self._state_order], dtype=np.float32)

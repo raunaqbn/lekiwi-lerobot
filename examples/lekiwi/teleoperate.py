@@ -1,77 +1,179 @@
-# !/usr/bin/env python
+#!/usr/bin/env python
+"""Raunaq's rollback-safe LeKiwi v0.6.1 teleoperation entry point."""
 
-# Copyright 2025 The HuggingFace Inc. team. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+from __future__ import annotations
 
+import argparse
+import atexit
+import os
+import select
+import sys
+import termios
 import time
+import tty
+from pathlib import Path
+
+# Constants are resolved at import time, so choose the isolated v0.6.1 cache
+# before importing LeRobot.  Existing user overrides remain authoritative.
+os.environ.setdefault(
+    "HF_LEROBOT_HOME", str(Path.home() / ".cache" / "huggingface" / "lerobot-v061")
+)
+
+import rerun as rr
+import rerun.blueprint as rrb
 
 from lerobot.robots.lekiwi import LeKiwiClient, LeKiwiClientConfig
+from lerobot.robots.lekiwi.live_diagnostics import (
+    AggregateSnapshotProvider,
+    BusLease,
+    CachedDiagnosticsServer,
+    EmbeddedDiagnosticsConfig,
+    LiveDiagnosticsSampler,
+)
 from lerobot.teleoperators.keyboard.teleop_keyboard import KeyboardTeleop, KeyboardTeleopConfig
-from lerobot.teleoperators.so_leader import SO100Leader, SO100LeaderConfig
-from lerobot.utils.robot_utils import precise_sleep
+from lerobot.teleoperators.so_leader import SO101Leader, SO101LeaderConfig
 from lerobot.utils.visualization_utils import init_rerun, log_rerun_data
 
 FPS = 30
+DEFAULT_PI = "10.0.0.104"
+DEFAULT_LEADER_PORT = "/dev/tty.usbmodem5A7A0555011"
 
 
-def main():
-    # Create the robot and teleoperator configurations
-    robot_config = LeKiwiClientConfig(remote_ip="172.18.134.136", id="my_lekiwi")
-    teleop_arm_config = SO100LeaderConfig(port="/dev/tty.usbmodem585A0077581", id="my_awesome_leader_arm")
-    keyboard_config = KeyboardTeleopConfig(id="my_laptop_keyboard")
+class TerminalPulseKeyboard:
+    """macOS Terminal key backend with release-by-expiry semantics."""
 
-    # Initialize the robot and teleoperator
-    robot = LeKiwiClient(robot_config)
-    leader_arm = SO100Leader(teleop_arm_config)
-    keyboard = KeyboardTeleop(keyboard_config)
+    def __init__(self, pulse_s: float = 0.35):
+        if not sys.stdin.isatty():
+            raise RuntimeError("Terminal keyboard control needs an interactive Terminal window")
+        self.fd = sys.stdin.fileno()
+        self.original = termios.tcgetattr(self.fd)
+        self.expiry: dict[str, float] = {}
+        self.controls = set("wasdzxrf")
+        self.pulse_s = pulse_s
+        self.connected = False
 
-    # Connect to the robot and teleoperator
-    # To connect you already should have this script running on LeKiwi: `python -m lerobot.robots.lekiwi.lekiwi_host --robot.id=my_awesome_kiwi`
-    robot.connect()
-    leader_arm.connect()
-    keyboard.connect()
+    def connect(self) -> None:
+        tty.setcbreak(self.fd)
+        self.connected = True
 
-    # Init rerun viewer
-    init_rerun(session_name="lekiwi_teleop")
+    def get_action(self) -> dict[str, None]:
+        now = time.perf_counter()
+        while select.select([self.fd], [], [], 0)[0]:
+            chars = os.read(self.fd, 64).decode(errors="ignore").lower()
+            for char in chars:
+                if char in self.controls:
+                    self.expiry[char] = now + self.pulse_s
+        for key in [key for key, expiry in self.expiry.items() if expiry <= now]:
+            del self.expiry[key]
+        return dict.fromkeys(self.expiry)
 
-    if not robot.is_connected or not leader_arm.is_connected or not keyboard.is_connected:
-        raise ValueError("Robot or teleop is not connected!")
+    def disconnect(self) -> None:
+        if self.connected:
+            termios.tcsetattr(self.fd, termios.TCSADRAIN, self.original)
+            self.connected = False
 
-    print("Starting teleop loop...")
-    while True:
-        t0 = time.perf_counter()
 
-        # Get robot observation
-        observation = robot.get_observation()
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Teleoperate LeKiwi v0.6.1 with live diagnostics")
+    parser.add_argument("--pi", default=DEFAULT_PI, help="Raspberry Pi address")
+    parser.add_argument("--leader-port", default=DEFAULT_LEADER_PORT)
+    parser.add_argument("--robot-id", default="anton")
+    parser.add_argument("--dashboard-host", default="127.0.0.1")
+    parser.add_argument("--dashboard-port", type=int, default=8090)
+    parser.add_argument("--no-rerun", action="store_true")
+    parser.add_argument("--no-pynput", action="store_true", help="Use only focused-Terminal key pulses")
+    return parser.parse_args()
 
-        # Get teleop action
-        # Arm
-        arm_action = leader_arm.get_action()
-        arm_action = {f"arm_{k}": v for k, v in arm_action.items()}
-        # Keyboard
-        keyboard_keys = keyboard.get_action()
-        base_action = robot._from_keyboard_to_base_action(keyboard_keys)
 
-        action = {**arm_action, **base_action} if len(base_action) > 0 else arm_action
+def main() -> None:
+    args = parse_args()
+    robot = LeKiwiClient(LeKiwiClientConfig(remote_ip=args.pi, id=args.robot_id))
+    leader_arm = SO101Leader(
+        SO101LeaderConfig(port=args.leader_port, id=args.robot_id, use_degrees=True, num_read_retries=2)
+    )
+    pynput_keyboard = None if args.no_pynput else KeyboardTeleop(KeyboardTeleopConfig(id="terminal_keyboard"))
+    terminal_keyboard = TerminalPulseKeyboard(0.35)
+    leader_lease = BusLease(args.leader_port, "LeKiwi v0.6.1 Mac teleoperation")
+    diagnostics_server: CachedDiagnosticsServer | None = None
 
-        # Send action to robot
-        _ = robot.send_action(action)
+    try:
+        leader_lease.acquire()
+        robot.connect()
+        leader_arm.connect()
+        terminal_keyboard.connect()
+        atexit.register(terminal_keyboard.disconnect)
+        if pynput_keyboard is not None:
+            pynput_keyboard.connect()
 
-        # Visualize
-        log_rerun_data(observation=observation, action=action)
+        leader_diagnostics = LiveDiagnosticsSampler(
+            leader_arm.bus,
+            EmbeddedDiagnosticsConfig(
+                role="leader",
+                serial_port=args.leader_port,
+                num_read_retries=leader_arm.config.num_read_retries,
+            ),
+        )
+        aggregate = AggregateSnapshotProvider(leader_diagnostics, robot.diagnostics_cache)
+        diagnostics_server = CachedDiagnosticsServer(
+            aggregate, args.dashboard_host, args.dashboard_port
+        )
+        diagnostics_server.start()
 
-        precise_sleep(max(1.0 / FPS - (time.perf_counter() - t0), 0.0))
+        if not args.no_rerun:
+            init_rerun(session_name="lekiwi_v061_teleop")
+            rr.send_blueprint(
+                rrb.Blueprint(
+                    rrb.Grid(
+                        rrb.Spatial2DView(origin="/observation.front", name="Base camera"),
+                        rrb.Spatial2DView(origin="/observation.wrist", name="Wrist camera"),
+                        grid_columns=2,
+                    )
+                )
+            )
+
+        print(
+            f"Teleoperation ready. Dashboard: http://{args.dashboard_host}:{args.dashboard_port}\n"
+            "Controls: W/S forward/back · A/D strafe · Z/X rotate · R/F speed · Ctrl+C stop",
+            flush=True,
+        )
+
+        while True:
+            started = time.perf_counter()
+            observation = robot.get_observation()
+
+            leader_action = leader_arm.get_action()
+            leader_positions = {
+                key.removesuffix(".pos"): float(value)
+                for key, value in leader_action.items()
+                if key.endswith(".pos")
+            }
+            leader_diagnostics.sample(leader_positions)
+            arm_action = {f"arm_{key}": value for key, value in leader_action.items()}
+
+            keyboard_keys: dict[str, None] = {}
+            if pynput_keyboard is not None:
+                keyboard_keys.update(pynput_keyboard.get_action())
+            keyboard_keys.update(terminal_keyboard.get_action())
+            base_action = robot._from_keyboard_to_base_action(keyboard_keys)
+            action = {**arm_action, **base_action}
+
+            if not args.no_rerun:
+                log_rerun_data(observation, action)
+            robot.send_action(action)
+            time.sleep(max(1.0 / FPS - (time.perf_counter() - started), 0.0))
+    except KeyboardInterrupt:
+        print("\nStopping teleoperation cleanly…", flush=True)
+    finally:
+        if diagnostics_server is not None:
+            diagnostics_server.stop()
+        terminal_keyboard.disconnect()
+        if pynput_keyboard is not None and pynput_keyboard.is_connected:
+            pynput_keyboard.disconnect()
+        if leader_arm.is_connected:
+            leader_arm.disconnect()
+        if robot.is_connected:
+            robot.disconnect()
+        leader_lease.release()
 
 
 if __name__ == "__main__":

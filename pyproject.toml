@@ -176,7 +176,7 @@ robstride = ["lerobot[can-dep]"]
 openarms = ["lerobot[damiao]"]
 gamepad = ["lerobot[pygame-dep]", "hidapi>=0.14.0,<0.15.0"]
 hopejr = ["lerobot[feetech]", "lerobot[pygame-dep]"]
-lekiwi = ["lerobot[feetech]", "lerobot[pyzmq-dep]"]
+lekiwi = ["lerobot[feetech]", "lerobot[pyzmq-dep]", "flask>=3.1.0,<4.0.0"]
 unitree_g1 = [
     # "unitree-sdk2==1.0.1",
     "lerobot[pyzmq-dep]",
@@ -357,6 +357,7 @@ lerobot-edit-dataset="lerobot.scripts.lerobot_edit_dataset:main"
 lerobot-setup-can="lerobot.scripts.lerobot_setup_can:main"
 lerobot-annotate="lerobot.scripts.lerobot_annotate:main"
 lerobot-rollout="lerobot.scripts.lerobot_rollout:main"
+lerobot-lekiwi-diagnostics="lerobot.robots.lekiwi.diagnostics:main"
 
 # ---------------- Tool Configurations ----------------
 
@@ -375,6 +376,16 @@ torchvision = [{ index = "pytorch-cu128", marker = "sys_platform == 'linux'" }]
 
 [tool.setuptools.package-data]
 lerobot = ["envs/*.json", "annotations/steerable_pipeline/prompts/*.txt"]
+"lerobot.robots.lekiwi" = [
+    "templates/*.html",
+    "static/*.css",
+    "static/*.js",
+    "static/models/lekiwi/*",
+    "static/models/lekiwi/meshes/*",
+    "static/vendor/three/*",
+    "static/vendor/three/examples/jsm/controls/*",
+    "static/vendor/urdf-loader/*",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -23,15 +23,15 @@ from ..config import RobotConfig
 def lekiwi_cameras_config() -> dict[str, CameraConfig]:
     return {
         "front": OpenCVCameraConfig(
-            index_or_path="/dev/video0",
+            index_or_path="/dev/v4l/by-path/platform-xhci-hcd.1-usb-0:1:1.0-video-index0",
             fps=30,
             width=640,
             height=480,
             fourcc="MJPG",
-            rotation=Cv2Rotation.ROTATE_180,
+            rotation=Cv2Rotation.NO_ROTATION,
         ),
         "wrist": OpenCVCameraConfig(
-            index_or_path="/dev/video2",
+            index_or_path="/dev/v4l/by-path/platform-xhci-hcd.0-usb-0:1:1.0-video-index0",
             fps=30,
             width=480,
             height=640,
@@ -44,7 +44,7 @@ def lekiwi_cameras_config() -> dict[str, CameraConfig]:
 @RobotConfig.register_subclass("lekiwi")
 @dataclass
 class LeKiwiConfig(RobotConfig):
-    port: str = "/dev/ttyACM0"  # port to connect to the bus
+    port: str = "/dev/serial/by-id/usb-1a86_USB_Single_Serial_5A7A055267-if00"
 
     disable_torque_on_disconnect: bool = True
 
@@ -72,13 +72,18 @@ class LeKiwiHostConfig:
     port_zmq_observations: int = 5556
 
     # Duration of the application
-    connection_time_s: int = 30
+    # Zero means persistent; any positive value is a supervised finite run.
+    connection_time_s: float = 0
 
-    # Watchdog: stop the robot if no command is received for over 0.5 seconds.
-    watchdog_timeout_ms: int = 500
+    # Watchdog: stop the base if commands stop for two seconds.
+    watchdog_timeout_ms: int = 2000
 
     # If robot jitters decrease the frequency and monitor cpu load with `top` in cmd
     max_loop_freq_hz: int = 30
+
+    diagnostics_enabled: bool = True
+    diagnostics_host: str = "0.0.0.0"
+    diagnostics_port: int = 8091
 
 
 @RobotConfig.register_subclass("lekiwi_client")

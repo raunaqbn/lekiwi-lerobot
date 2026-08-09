@@ -1,0 +1,326 @@
+<!doctype html>
+<!--
+THESIS: LeKiwi is a living device network that connects itself; this surface refuses the service-bench metaphor and the generic admin dashboard.
+OWN-WORLD: Cool mist canvas, white structural surfaces, ink navy, an indigo active route, compact workhorse sans, and named health colors.
+STORY: The app joins the local leader and remote follower into one system view, keeps their power rails distinct, then lets the operator drill into evidence.
+FIRST VIEWPORT: A slim connection bar and two source cards sit above simultaneous leader/follower topology and one combined health rail.
+FORM: Modern smart-device fleet console, grounded candidate seven; a visible transit-network route stages the robot topology; seed 89bdf9e9.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>LeKiwi Diagnostics</title>
+    <link rel="stylesheet" href="../static/lekiwi_diagnostics.css">
+    <script type="module" src="../static/lekiwi_3d.js"></script>
+    <script defer src="../static/lekiwi_diagnostics.js"></script>
+  </head>
+  <body>
+    <div class="file-launch" id="file-launch" hidden>
+      <div class="launch-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32"><path d="M7 16h18M16 7v18"/><circle cx="16" cy="16" r="13"/></svg>
+      </div>
+      <p class="eyebrow">LeKiwi diagnostics</p>
+      <h1>Launch the local service first.</h1>
+      <p>This page talks to your robot through a small Python service. Opening the HTML file directly can’t access the motor bus.</p>
+      <div class="command-copy">
+        <code id="launch-command">python -m lerobot.robots.lekiwi.diagnostics</code>
+        <button id="copy-command" type="button">Copy</button>
+      </div>
+      <p class="launch-footnote">Then open <strong>http://127.0.0.1:8090</strong>. The app will look for the bus automatically.</p>
+    </div>
+
+    <div class="app" id="app">
+      <header class="topbar">
+        <a class="brand" href="#network" aria-label="LeKiwi diagnostics home">
+          <span class="brand-symbol" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 5v14h14M5 13h8V5M13 13h6v6"/></svg>
+          </span>
+          <span><strong>LeKiwi</strong><small>Diagnostics</small></span>
+        </a>
+        <div class="topbar-meta">
+          <span class="readonly-badge">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5 4 5v4.4c0 3.8 2.5 6.8 6 8.1 3.5-1.3 6-4.3 6-8.1V5l-6-2.5Z"/><path d="m7.4 10 1.7 1.7 3.7-4"/></svg>
+            Read only
+          </span>
+          <div class="live-state" aria-live="polite">
+            <span class="status-dot" id="header-dot" data-severity="offline"></span>
+            <span id="header-state">Finding robot sources…</span>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="connection-bar" aria-labelledby="connection-title">
+          <div class="connection-message">
+            <span class="connection-icon" id="connection-icon" data-state="searching" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M7 7h10v6a5 5 0 0 1-10 0V7Z"/><path d="M9 3v4M15 3v4M12 18v3"/></svg>
+            </span>
+            <div>
+              <h1 id="connection-title">Finding the leader arm</h1>
+              <p id="connection-detail">Checking the remembered Mac USB adapter while the follower feed connects separately.</p>
+            </div>
+          </div>
+          <div class="connection-actions">
+            <button class="button button--secondary" id="autodetect-button" type="button">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.6 8A7 7 0 0 0 4 5.1M3.4 12A7 7 0 0 0 16 14.9"/><path d="M4 2v3.5h3.5M16 18v-3.5h-3.5"/></svg>
+              <span>Find automatically</span>
+            </button>
+            <details class="connection-settings" id="connection-settings">
+              <summary>Connection settings</summary>
+              <form id="connection-form">
+                <div class="field field--port">
+                  <label for="serial-port">Leader serial port</label>
+                  <div class="input-with-button">
+                    <input id="serial-port" list="available-ports" placeholder="/dev/ttyACM0" autocomplete="off" required>
+                    <button id="refresh-ports" type="button" aria-label="Refresh serial ports" title="Refresh serial ports">
+                      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.6 8A7 7 0 0 0 4 5.1M3.4 12A7 7 0 0 0 16 14.9"/><path d="M4 2v3.5h3.5M16 18v-3.5h-3.5"/></svg>
+                    </button>
+                  </div>
+                  <datalist id="available-ports"></datalist>
+                </div>
+                <div class="field">
+                  <label for="baudrate">Baud rate</label>
+                  <select id="baudrate">
+                    <option value="1000000">1,000,000 · default</option>
+                    <option value="500000">500,000</option>
+                    <option value="250000">250,000</option>
+                    <option value="115200">115,200</option>
+                    <option value="57600">57,600</option>
+                  </select>
+                </div>
+                <label class="check-field" for="deep-scan">
+                  <input id="deep-scan" type="checkbox">
+                  <span><strong>Search every baud rate</strong><small>Useful for a misconfigured motor.</small></span>
+                </label>
+                <button class="button button--primary" id="connect-button" type="submit">Connect manually</button>
+                <button class="button button--quiet" id="disconnect-button" type="button" hidden>Disconnect</button>
+                <div class="settings-divider"><span>Follower source</span></div>
+                <div class="field">
+                  <label for="follower-url">Pi diagnostics URL</label>
+                  <input id="follower-url" placeholder="http://10.0.0.104:8091" autocomplete="url">
+                  <small>Runs beside <code>/dev/ttyACM0</code> and is remembered on this Mac.</small>
+                </div>
+                <button class="button button--secondary" id="save-follower" type="button">Connect follower feed</button>
+              </form>
+            </details>
+          </div>
+        </section>
+
+        <div class="error-banner" id="error-banner" role="alert" hidden>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2 8 15H2L10 2Z"/><path d="M10 7v4M10 14v.1"/></svg>
+          <div><strong>Connection problem</strong><p id="error-message"></p></div>
+          <button id="dismiss-error" type="button" aria-label="Dismiss error">×</button>
+        </div>
+
+        <section class="source-strip" aria-label="Robot telemetry sources">
+          <article class="source-card" id="leader-source-card" data-source="leader" data-severity="offline">
+            <div class="source-card__mark"><span>LA</span></div>
+            <div class="source-card__copy">
+              <div><p class="eyebrow">Local · Mac USB</p><h2>Leader arm</h2></div>
+              <p id="leader-source-detail">Waiting for the six-motor leader bus.</p>
+            </div>
+            <dl><div><dt>Motors</dt><dd id="leader-source-count">0 / 6</dd></div><div><dt>Bus voltage</dt><dd id="leader-source-voltage">—</dd></div></dl>
+          </article>
+          <article class="source-card" id="follower-source-card" data-source="follower" data-severity="offline">
+            <div class="source-card__mark"><span>FR</span></div>
+            <div class="source-card__copy">
+              <div><p class="eyebrow">Remote · Raspberry Pi</p><h2>Follower robot</h2></div>
+              <p id="follower-source-detail">Add the Pi diagnostics URL to receive all nine motors.</p>
+            </div>
+            <dl><div><dt>Motors</dt><dd id="follower-source-count">0 / 9</dd></div><div><dt>Battery rail</dt><dd id="follower-source-voltage">—</dd></div></dl>
+          </article>
+        </section>
+
+        <section class="twin-shell" aria-labelledby="twin-title">
+          <div class="twin-panel">
+            <header class="twin-heading">
+              <div>
+                <p class="eyebrow">Live digital twin</p>
+                <h2 id="twin-title">Follower robot</h2>
+                <p>Official LeKiwi CAD · drag to orbit · scroll to zoom · click a motor</p>
+              </div>
+              <div class="twin-controls">
+                <label class="odometry-toggle" title="Visualization only; wheel odometry accumulates drift">
+                  <input id="estimated-chassis-motion" type="checkbox">
+                  <span>Estimated chassis motion</span>
+                </label>
+                <button class="button button--secondary button--compact" id="reset-odometry" type="button">Reset odometry</button>
+                <button class="button button--secondary button--compact" id="reset-camera" type="button">Reset view</button>
+              </div>
+            </header>
+            <div class="twin-stage" id="twin-stage">
+              <canvas id="robot-canvas" aria-label="Interactive 3D model of the LeKiwi follower robot"></canvas>
+              <div class="twin-loading" id="twin-loading">
+                <span class="loader-ring" aria-hidden="true"></span>
+                <strong>Loading official LeKiwi CAD</strong>
+                <span>Preparing the URDF and STL parts…</span>
+              </div>
+              <div class="twin-key" aria-label="3D motor state key">
+                <span><i data-severity="healthy"></i>Healthy</span>
+                <span><i data-severity="warning"></i>Check</span>
+                <span><i data-severity="unpowered"></i>Unpowered</span>
+                <span><i data-severity="critical"></i>Fault</span>
+              </div>
+              <div class="odometry-warning" id="odometry-warning" hidden>Estimated wheel odometry · drift-prone · visualization only</div>
+            </div>
+          </div>
+
+          <aside class="telemetry-stack" aria-label="Follower power and selected part">
+            <section class="power-card">
+              <div class="card-heading"><div><p class="eyebrow">Power path</p><h2>Controller &amp; servo rail</h2></div><span class="confidence-chip" id="power-confidence">Checking</span></div>
+              <div class="power-path">
+                <div class="power-node" id="usb-power-node" data-state="offline">
+                  <span class="power-node__icon"><svg viewBox="0 0 24 24"><path d="M8 7h8v7a4 4 0 0 1-8 0V7ZM10 3v4M14 3v4M12 18v3"/></svg></span>
+                  <div><strong>USB controller</strong><span id="usb-power-state">Checking…</span></div>
+                </div>
+                <span class="power-link" aria-hidden="true"></span>
+                <div class="power-node" id="rail-power-node" data-state="unknown">
+                  <span class="power-node__icon"><svg viewBox="0 0 24 24"><path d="m13 2-7 12h6l-1 8 7-12h-6l1-8Z"/></svg></span>
+                  <div><strong>Servo rail</strong><span id="rail-power-state">Unknown</span></div>
+                </div>
+              </div>
+              <p class="power-detail" id="power-detail">Waiting for follower telemetry.</p>
+            </section>
+
+            <section class="battery-card" data-state="unavailable">
+              <div class="card-heading"><div><p class="eyebrow">Follower battery</p><h2>Voltage-only estimate</h2></div><span class="battery-voltage" id="battery-voltage">—</span></div>
+              <div class="battery-estimate">
+                <div class="battery-gauge" id="battery-gauge"><span id="battery-fill"></span></div>
+                <strong id="battery-range">Unavailable</strong>
+                <span id="battery-energy">Turn on the servo rail to sample pack voltage.</span>
+              </div>
+              <p id="battery-detail">This estimate uses only the follower’s 3S servo rail—not the separate 5 V leader arm.</p>
+              <details><summary>How accurate is this?</summary><p>Low confidence. The pack is 11.1 V nominal, 12.6 V full, and 57.72 Wh. Load, charging, temperature, and cell age all move the voltage. The motor calibration files contain joint ranges, not a battery discharge curve, so runtime is unavailable until current draw or a logged discharge session exists.</p></details>
+            </section>
+
+            <section class="part-card">
+              <div class="card-heading"><div><p class="eyebrow">Selected part</p><h2 id="selected-part-name">Shoulder pan</h2></div><span class="part-state" id="selected-part-state" data-severity="offline">Offline</span></div>
+              <p class="part-id" id="selected-part-id">Follower · ID 01</p>
+              <dl class="part-readings">
+                <div><dt>Voltage</dt><dd id="selected-part-voltage">—</dd></div>
+                <div><dt>Temperature</dt><dd id="selected-part-temperature">—</dd></div>
+                <div><dt>Position</dt><dd id="selected-part-position">—</dd></div>
+                <div><dt>Torque</dt><dd id="selected-part-torque">—</dd></div>
+              </dl>
+              <p class="pose-note">Pose uses backend calibration-aware joint radians. Estimated chassis motion is optional, drift-prone, and never commands a motor.</p>
+            </section>
+          </aside>
+        </section>
+
+        <div class="overview-grid">
+          <section class="network-panel" id="network" aria-labelledby="network-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Live robot network</p>
+                <h2 id="network-title">Both arms, one view</h2>
+              </div>
+              <div class="network-meta">
+                <span><i data-severity="healthy"></i>Healthy</span>
+                <span><i data-severity="warning"></i>Check</span>
+                <span><i data-severity="critical"></i>Fault</span>
+              </div>
+            </div>
+
+            <div class="network-canvas dual-network" id="network-canvas" data-mode="searching">
+              <section class="source-route" aria-labelledby="leader-route-title">
+                <header><span class="route-source-dot" data-source="leader"></span><div><strong id="leader-route-title">Leader arm</strong><small id="leader-route-meta">Mac USB · awaiting bus</small></div></header>
+                <div class="motor-rail" id="leader-motor-rail"></div>
+              </section>
+              <section class="source-route" aria-labelledby="follower-route-title">
+                <header><span class="route-source-dot" data-source="follower"></span><div><strong id="follower-route-title">Follower robot</strong><small id="follower-route-meta">Raspberry Pi · awaiting feed</small></div></header>
+                <div class="motor-group-label">Arm · IDs 1–6</div>
+                <div class="motor-rail" id="follower-arm-rail"></div>
+                <div class="motor-group-label">Omniwheel base · IDs 7–9</div>
+                <div class="motor-rail motor-rail--wheels" id="follower-base-rail"></div>
+              </section>
+            </div>
+          </section>
+
+          <aside class="health-panel" aria-labelledby="health-title">
+            <div class="section-heading section-heading--health">
+              <div>
+                <p class="eyebrow">Current state</p>
+                <h2 id="health-title">System health</h2>
+              </div>
+              <span class="updated-at" id="updated-at">No sample yet</span>
+            </div>
+
+            <div class="health-verdict">
+              <span class="verdict-icon" id="verdict-icon" data-severity="offline">
+                <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="11"/><path d="M9.5 14h9M14 9.5v9"/></svg>
+              </span>
+              <div><strong id="verdict-title">Looking for the robot</strong><p id="verdict-detail">The app will connect when it finds an unambiguous motor bus.</p></div>
+            </div>
+
+            <div class="health-counts" aria-label="Motor health counts">
+              <div><strong id="count-detected">0</strong><span>Detected</span><small id="count-expected">of 9 expected</small></div>
+              <div><strong id="count-attention">0</strong><span>Need attention</span><small>warning or fault</small></div>
+            </div>
+
+            <div class="health-track" aria-label="Motor status distribution">
+              <span id="track-healthy" data-severity="healthy"></span>
+              <span id="track-warning" data-severity="warning"></span>
+              <span id="track-critical" data-severity="critical"></span>
+              <span id="track-offline" data-severity="offline"></span>
+            </div>
+
+            <div class="findings-heading">
+              <h3>Issues</h3><span id="finding-total">0</span>
+            </div>
+            <div class="finding-list" id="finding-list">
+              <div class="finding-empty"><strong>No sample yet</strong><span>Connection guidance and motor faults will appear here.</span></div>
+            </div>
+
+            <dl class="bus-facts">
+              <div><dt>Profile</dt><dd id="active-profile">Detecting…</dd></div>
+              <div><dt>Bus</dt><dd id="active-link">Not connected</dd></div>
+              <div><dt>Baud</dt><dd id="active-baud">1,000,000</dd></div>
+              <div><dt>Poll</dt><dd id="poll-latency">—</dd></div>
+            </dl>
+          </aside>
+        </div>
+
+        <section class="evidence-panel" aria-labelledby="evidence-title">
+          <div class="evidence-heading">
+            <div>
+              <p class="eyebrow">Live evidence</p>
+              <h2 id="evidence-title">Motor readings</h2>
+            </div>
+            <div class="filters" role="group" aria-label="Filter motors">
+              <button class="filter-button is-active" data-filter="all" type="button">All 15</button>
+              <button class="filter-button" data-filter="leader" type="button">Leader</button>
+              <button class="filter-button" data-filter="follower" type="button">Follower</button>
+              <button class="filter-button" data-filter="arm" type="button">Arms</button>
+              <button class="filter-button" data-filter="base" type="button">Wheels</button>
+            </div>
+          </div>
+          <div class="table-wrap" tabindex="0" aria-label="Scrollable motor readings">
+            <table>
+              <thead><tr><th scope="col">Source</th><th scope="col">Motor</th><th scope="col">State</th><th scope="col">Position</th><th scope="col">Velocity</th><th scope="col">Voltage</th><th scope="col">Temp.</th><th scope="col">Current</th><th scope="col">Torque</th></tr></thead>
+              <tbody id="motor-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <footer><span id="footer-topology">LeKiwi motor network · 9 expected devices</span><span>Safe, read-only inspection</span></footer>
+    </div>
+
+    <template id="motor-row-template">
+      <tr>
+        <td><span class="table-source"></span></td>
+        <th scope="row"><span class="table-id"></span><span><strong class="table-name"></strong><small class="table-model"></small></span></th>
+        <td><span class="table-state"></span></td>
+        <td class="numeric"><strong class="position-value"></strong><small class="position-raw"></small></td>
+        <td class="numeric"><strong class="velocity-value"></strong><small class="velocity-raw"></small></td>
+        <td class="numeric voltage-value"></td>
+        <td class="numeric temperature-value"></td>
+        <td class="numeric current-value"></td>
+        <td class="torque-value"></td>
+      </tr>
+    </template>
+  </body>
+</html>

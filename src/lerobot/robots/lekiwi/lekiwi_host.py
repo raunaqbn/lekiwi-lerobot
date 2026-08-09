@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import atexit
+import contextlib
 import json
 import logging
 import time
@@ -25,6 +27,14 @@ import zmq
 
 from .config_lekiwi import LeKiwiConfig, LeKiwiHostConfig
 from .lekiwi import LeKiwi
+from .live_diagnostics import (
+    PROTOCOL_VERSION,
+    BusLease,
+    CachedDiagnosticsServer,
+    EmbeddedDiagnosticsConfig,
+    LiveDiagnosticsSampler,
+    ProtocolCompatibilityError,
+)
 
 
 @dataclass
@@ -63,30 +73,92 @@ def main(cfg: LeKiwiServerConfig):
     logging.info("Configuring LeKiwi")
     robot = LeKiwi(cfg.robot)
 
+    lease = BusLease(cfg.robot.port, "LeKiwi v0.6.1 teleoperation host")
+    lease.acquire()
+
     logging.info("Connecting LeKiwi")
-    robot.connect()
+    try:
+        robot.connect()
+    except Exception:
+        lease.release()
+        raise
+
+    diagnostics_server = None
+    host = None
+    cleaned_up = False
+
+    def cleanup() -> None:
+        nonlocal cleaned_up
+        if cleaned_up:
+            return
+        cleaned_up = True
+        if diagnostics_server is not None:
+            diagnostics_server.stop()
+        with contextlib.suppress(Exception):
+            robot.disconnect()
+        if host is not None:
+            with contextlib.suppress(Exception):
+                host.disconnect()
+        lease.release()
+
+    # Also covers failures while binding the HTTP/ZMQ ports after the motor
+    # connection has enabled torque.
+    atexit.register(cleanup)
+
+    diagnostics = LiveDiagnosticsSampler(
+        robot.bus,
+        EmbeddedDiagnosticsConfig(
+            role="follower",
+            serial_port=cfg.robot.port,
+            num_read_retries=cfg.robot.num_read_retries,
+        ),
+    )
+    if cfg.host.diagnostics_enabled:
+        diagnostics_server = CachedDiagnosticsServer(
+            diagnostics, cfg.host.diagnostics_host, cfg.host.diagnostics_port
+        )
+        diagnostics_server.start()
+        logging.info(
+            "Follower cached diagnostics available on http://%s:%s",
+            cfg.host.diagnostics_host,
+            cfg.host.diagnostics_port,
+        )
 
     logging.info("Starting HostAgent")
     host = LeKiwiHost(cfg.host)
 
     last_cmd_time = time.time()
     watchdog_active = False
+    last_observation = None
     logging.info("Waiting for commands...")
     try:
         # Business logic
         start = time.perf_counter()
         duration = 0
-        while duration < host.connection_time_s:
+        while host.connection_time_s <= 0 or duration < host.connection_time_s:
             loop_start_time = time.time()
             try:
                 msg = host.zmq_cmd_socket.recv_string(zmq.NOBLOCK)
-                data = dict(json.loads(msg))
-                _action_sent = robot.send_action(data)
+                envelope = dict(json.loads(msg))
+                received_protocol = envelope.get("_protocol")
+                if received_protocol != PROTOCOL_VERSION:
+                    raise ProtocolCompatibilityError(
+                        "Incompatible LeKiwi host/client protocol: "
+                        f"host requires {PROTOCOL_VERSION!r}, client sent {received_protocol!r}. "
+                        "Start the matching v0.6.1 Mac client and Pi host together."
+                    )
+                if envelope.get("_kind") != "action" or not isinstance(envelope.get("action"), dict):
+                    raise RuntimeError("Invalid LeKiwi command envelope")
+                _action_sent = robot.send_action(envelope["action"])
                 last_cmd_time = time.time()
                 watchdog_active = False
             except zmq.Again:
                 if not watchdog_active:
                     logging.warning("No command available")
+            except ProtocolCompatibilityError:
+                # A mixed v0.3.4/v0.6.1 pair must fail closed instead of
+                # accepting an action with incompatible semantics.
+                raise
             except Exception as e:
                 logging.error("Message fetching failed: %s", e)
 
@@ -96,21 +168,47 @@ def main(cfg: LeKiwiServerConfig):
                     f"Command not received for more than {host.watchdog_timeout_ms} milliseconds. Stopping the base."
                 )
                 watchdog_active = True
-                robot.stop_base()
+                try:
+                    robot.stop_base()
+                except Exception as exc:
+                    logging.warning("Could not stop an unavailable base bus: %s", exc)
 
-            last_observation = robot.get_observation()
+            try:
+                last_observation = robot.get_observation()
+                diagnostics.sample(
+                    robot.last_arm_position,
+                    wheel_velocity_raw=robot.last_base_wheel_velocity,
+                    body_velocity=robot.last_body_velocity,
+                )
+            except Exception as exc:
+                # The USB controller may remain online while the servo rail is
+                # switched off. Keep the host alive so recovery requires no
+                # process restart and expose the transition in cached telemetry.
+                logging.warning("Follower motor sample unavailable: %s", exc)
+                diagnostics.mark_bus_unavailable(exc)
+
+            if last_observation is None:
+                time.sleep(max(1 / host.max_loop_freq_hz, 0.01))
+                duration = time.perf_counter() - start
+                continue
 
             # Send one multipart message: a JSON header frame (state + camera
             # order) followed by one raw JPEG frame per camera. Raw JPEG avoids
             # the 33% base64 inflation of embedding binary data in JSON.
             cam_keys = list(robot.cameras.keys())
+            observation_to_send = dict(last_observation)
             jpeg_frames = []
             for cam_key in cam_keys:
                 ret, jpeg = cv2.imencode(
-                    ".jpg", last_observation.pop(cam_key), [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+                    ".jpg", observation_to_send.pop(cam_key), [int(cv2.IMWRITE_JPEG_QUALITY), 90]
                 )
                 jpeg_frames.append(jpeg if ret else b"")
-            header = {"_cams": cam_keys, **last_observation}
+            header = {
+                "_protocol": PROTOCOL_VERSION,
+                "_diagnostics": diagnostics.snapshot(),
+                "_cams": cam_keys,
+                **observation_to_send,
+            }
 
             # Send the observation to the remote agent
             try:
@@ -131,8 +229,7 @@ def main(cfg: LeKiwiServerConfig):
         print("Keyboard interrupt received. Exiting...")
     finally:
         print("Shutting down Lekiwi Host.")
-        robot.disconnect()
-        host.disconnect()
+        cleanup()
 
     logging.info("Finished LeKiwi cleanly")
 
