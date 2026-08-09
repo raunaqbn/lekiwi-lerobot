@@ -35,7 +35,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, Response, jsonify, render_template, request, stream_with_context
 from serial.tools import list_ports
 
 
@@ -931,6 +931,7 @@ def _offline_source(role: str, endpoint: str | None = None, error: str | None = 
             continue
         motors.append(
             {
+                "source": role,
                 "name": expected.name,
                 "label": expected.label,
                 "id": expected.id,
@@ -1164,6 +1165,27 @@ def create_app(
     @app.get("/api/state")
     def api_state():
         return jsonify(current_state())
+
+    @app.get("/api/stream")
+    def api_stream():
+        @stream_with_context
+        def events():
+            while True:
+                yield f"event: state\ndata: {json.dumps(current_state(), separators=(',', ':'))}\n\n"
+                time.sleep(1.0 / 15.0)
+
+        return Response(
+            events(),
+            mimetype="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
+    @app.post("/api/odometry/reset")
+    def api_odometry_reset():
+        # Standalone maintenance diagnostics has no chassis integrator. Keep
+        # the endpoint compatible with the embedded dashboard without touching
+        # a motor or serial register.
+        return jsonify({"ok": True, "visualization_only": True, "state": current_state()})
 
     @app.post("/api/connect")
     def api_connect():

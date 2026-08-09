@@ -74,6 +74,17 @@ def test_state_endpoint_works_without_hardware():
     assert response.get_json()["counts"]["expected"] == 9
 
 
+def test_standalone_sse_endpoint_streams_cached_demo_state_without_hardware():
+    app = create_app(LeKiwiDiagnostics(demo=True))
+    response = app.test_client().get("/api/stream", buffered=False)
+
+    first = next(response.response).decode()
+    response.close()
+
+    assert "event: state" in first
+    assert '"sources"' in first
+
+
 def test_combined_snapshot_keeps_overlapping_leader_and_follower_ids_distinct():
     leader = LeKiwiDiagnostics()
     leader.connected = True
@@ -123,6 +134,15 @@ def test_combined_snapshot_keeps_overlapping_leader_and_follower_ids_distinct():
     assert state["sources"]["follower"]["motors"][0]["voltage_v"] == 10.5
     assert state["battery"]["voltage_v"] == 10.5
     assert state["battery"]["percent_max"] == 20
+
+
+def test_offline_source_motors_keep_their_source_identity():
+    state = combine_snapshots(LeKiwiDiagnostics(demo=True).snapshot())
+
+    offline_role = "follower" if state["sources"]["leader"]["connected"] else "leader"
+    assert all(
+        motor["source"] == offline_role for motor in state["sources"][offline_role]["motors"]
+    )
 
 
 def test_remote_follower_url_is_normalized():
