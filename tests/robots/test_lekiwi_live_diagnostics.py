@@ -67,8 +67,8 @@ def test_gripper_uses_recorded_raw_span():
     calibration = Calibration(1467, 2972)
     expected_travel = (2972 - 1467) * 2 * math.pi / 4096
     assert gripper_percent_to_radians(0, calibration) == 0
-    assert gripper_percent_to_radians(100, calibration) == pytest.approx(expected_travel)
-    assert gripper_percent_to_radians(50, calibration) == pytest.approx(expected_travel / 2)
+    assert gripper_percent_to_radians(100, calibration) == pytest.approx(-expected_travel)
+    assert gripper_percent_to_radians(50, calibration) == pytest.approx(-expected_travel / 2)
 
 
 def test_body_odometry_rotates_body_velocity_into_world():

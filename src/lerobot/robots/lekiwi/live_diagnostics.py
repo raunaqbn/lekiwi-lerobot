@@ -86,7 +86,7 @@ JOINT_TRANSFORMS: dict[str, tuple[float, float]] = {
     "arm_elbow_flex": (-1.0, math.pi / 2),
     "arm_wrist_flex": (-1.0, math.pi / 2),
     "arm_wrist_roll": (1.0, 0.0),
-    "arm_gripper": (1.0, 0.0),
+    "arm_gripper": (-1.0, 0.0),
     "base_left_wheel": (1.0, 0.0),
     "base_back_wheel": (1.0, 0.0),
     "base_right_wheel": (1.0, 0.0),

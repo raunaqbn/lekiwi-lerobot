@@ -32,7 +32,7 @@ const LEGACY_CAD_TRANSFORMS = {
   arm_elbow_flex: [-1, Math.PI / 2],
   arm_wrist_flex: [-1, Math.PI / 2],
   arm_wrist_roll: [1, 0],
-  arm_gripper: [1, 0],
+  arm_gripper: [-1, 0],
 };
 
 function modelRadians(motor) {
