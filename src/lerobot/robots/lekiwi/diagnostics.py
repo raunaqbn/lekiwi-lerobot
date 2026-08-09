@@ -1142,6 +1142,8 @@ def create_app(
     service = service or LeKiwiDiagnostics()
     follower = follower or RemoteDiagnosticsProxy()
     app = Flask(__name__)
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
+    app.jinja_env.auto_reload = True
     app.config["diagnostics"] = service
     app.config["follower_diagnostics"] = follower
 

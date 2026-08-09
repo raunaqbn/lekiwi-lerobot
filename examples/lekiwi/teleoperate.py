@@ -15,9 +15,7 @@ from pathlib import Path
 
 # Constants are resolved at import time, so choose the isolated v0.6.1 cache
 # before importing LeRobot.  Existing user overrides remain authoritative.
-os.environ.setdefault(
-    "HF_LEROBOT_HOME", str(Path.home() / ".cache" / "huggingface" / "lerobot-v061")
-)
+os.environ.setdefault("HF_LEROBOT_HOME", str(Path.home() / ".cache" / "huggingface" / "lerobot-v061"))
 
 import rerun as rr
 import rerun.blueprint as rrb
@@ -29,6 +27,7 @@ from lerobot.robots.lekiwi.live_diagnostics import (
     CachedDiagnosticsServer,
     EmbeddedDiagnosticsConfig,
     LiveDiagnosticsSampler,
+    TeleopControlBridge,
 )
 from lerobot.teleoperators.keyboard.teleop_keyboard import KeyboardTeleop, KeyboardTeleopConfig
 from lerobot.teleoperators.so_leader import SO101Leader, SO101LeaderConfig
@@ -95,6 +94,7 @@ def main() -> None:
     terminal_keyboard = TerminalPulseKeyboard(0.35)
     leader_lease = BusLease(args.leader_port, "LeKiwi v0.6.1 Mac teleoperation")
     diagnostics_server: CachedDiagnosticsServer | None = None
+    dashboard_controls = TeleopControlBridge()
 
     try:
         leader_lease.acquire()
@@ -113,10 +113,13 @@ def main() -> None:
                 num_read_retries=leader_arm.config.num_read_retries,
             ),
         )
-        aggregate = AggregateSnapshotProvider(leader_diagnostics, robot.diagnostics_cache)
-        diagnostics_server = CachedDiagnosticsServer(
-            aggregate, args.dashboard_host, args.dashboard_port
+        aggregate = AggregateSnapshotProvider(
+            leader_diagnostics,
+            robot.diagnostics_cache,
+            cameras=robot.camera_cache,
+            controls=dashboard_controls,
         )
+        diagnostics_server = CachedDiagnosticsServer(aggregate, args.dashboard_host, args.dashboard_port)
         diagnostics_server.start()
 
         if not args.no_rerun:
@@ -133,7 +136,8 @@ def main() -> None:
 
         print(
             f"Teleoperation ready. Dashboard: http://{args.dashboard_host}:{args.dashboard_port}\n"
-            "Controls: W/S forward/back · A/D strafe · Z/X rotate · R/F speed · Ctrl+C stop",
+            "Controls: W/S forward/back · A/D strafe · Z/X rotate · R/F speed · Ctrl+C stop\n"
+            "The dashboard now includes dead-man base controls, arm jogging, and both camera feeds.",
             flush=True,
         )
 
@@ -155,6 +159,11 @@ def main() -> None:
                 keyboard_keys.update(pynput_keyboard.get_action())
             keyboard_keys.update(terminal_keyboard.get_action())
             base_action = robot._from_keyboard_to_base_action(keyboard_keys)
+            arm_action, base_action = dashboard_controls.apply(
+                arm_action,
+                base_action,
+                observation,
+            )
             action = {**arm_action, **base_action}
 
             if not args.no_rerun:

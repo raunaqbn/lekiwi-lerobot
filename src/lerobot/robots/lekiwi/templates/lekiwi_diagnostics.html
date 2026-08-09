@@ -41,9 +41,9 @@ FORM: Modern smart-device fleet console, grounded candidate seven; a visible tra
           <span><strong>LeKiwi</strong><small>Diagnostics</small></span>
         </a>
         <div class="topbar-meta">
-          <span class="readonly-badge">
+          <span class="readonly-badge" id="access-mode-badge">
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5 4 5v4.4c0 3.8 2.5 6.8 6 8.1 3.5-1.3 6-4.3 6-8.1V5l-6-2.5Z"/><path d="m7.4 10 1.7 1.7 3.7-4"/></svg>
-            Read only
+            <span id="access-mode-label">Read only</span>
           </span>
           <div class="live-state" aria-live="polite">
             <span class="status-dot" id="header-dot" data-severity="offline"></span>
@@ -132,6 +132,103 @@ FORM: Modern smart-device fleet console, grounded candidate seven; a visible tra
             </div>
             <dl><div><dt>Motors</dt><dd id="follower-source-count">0 / 9</dd></div><div><dt>Battery rail</dt><dd id="follower-source-voltage">—</dd></div></dl>
           </article>
+        </section>
+
+        <section class="operation-shell" id="operation" aria-labelledby="operation-title">
+          <header class="operation-heading">
+            <div>
+              <p class="eyebrow">Live operation</p>
+              <h2 id="operation-title">See the workspace. Manipulate the robot.</h2>
+              <p>Camera frames and control intent travel through the running teleoperation process. The dashboard never opens a motor bus.</p>
+            </div>
+            <div class="operation-gate">
+              <span class="control-state-chip" id="control-state-chip" data-state="offline">Unavailable</span>
+              <label class="control-master" for="control-enabled">
+                <input id="control-enabled" type="checkbox" aria-label="Enable dashboard control">
+                <span><strong>Enable dashboard control</strong><small id="control-permit-reason">Waiting for teleoperation.</small></span>
+              </label>
+            </div>
+          </header>
+
+          <div class="operation-grid">
+            <section class="camera-console" aria-labelledby="camera-title">
+              <div class="console-heading">
+                <div><h3 id="camera-title">Robot vision</h3><p>Live frames already corrected to their configured orientation.</p></div>
+                <span class="camera-health" id="camera-health" data-severity="offline">Waiting for frames</span>
+              </div>
+              <div class="camera-grid">
+                <figure class="camera-view" data-camera="front">
+                  <div class="camera-frame">
+                    <img id="front-camera-feed" src="/api/cameras/front/stream" alt="Live view from the LeKiwi base camera">
+                    <div class="camera-placeholder"><span></span><strong>Base camera offline</strong><small>Start teleoperation to receive frames.</small></div>
+                    <span class="camera-live-mark">Live</span>
+                  </div>
+                  <figcaption><span><strong>Base view</strong><small>Navigation &amp; workspace</small></span><time id="front-camera-age">No frame</time></figcaption>
+                </figure>
+                <figure class="camera-view camera-view--wrist" data-camera="wrist">
+                  <div class="camera-frame">
+                    <img id="wrist-camera-feed" src="/api/cameras/wrist/stream" alt="Live view from the LeKiwi wrist camera">
+                    <div class="camera-placeholder"><span></span><strong>Wrist camera offline</strong><small>Check the arm USB camera.</small></div>
+                    <span class="camera-live-mark">Live</span>
+                  </div>
+                  <figcaption><span><strong>Wrist view</strong><small>Grasping &amp; alignment</small></span><time id="wrist-camera-age">No frame</time></figcaption>
+                </figure>
+              </div>
+            </section>
+
+            <section class="manipulation-console" aria-labelledby="manipulation-title">
+              <div class="console-heading console-heading--controls">
+                <div><h3 id="manipulation-title">Robot manipulation</h3><p>Press and hold to move. Releasing stops within 350 ms.</p></div>
+                <button class="stop-button" id="stop-motion" type="button">
+                  <span aria-hidden="true"></span> Stop motion
+                </button>
+              </div>
+
+              <div class="manipulation-layout">
+                <div class="base-control-group">
+                  <div class="control-subheading"><div><h4>Omniwheel base</h4><p>Translate or rotate in place.</p></div><output id="base-command-output">Stopped</output></div>
+                  <div class="drive-deck" aria-label="Base movement controls">
+                    <div class="rotation-controls">
+                      <button class="drive-button drive-button--rotate" type="button" data-base-key="z" aria-label="Rotate left in place"><span>↶</span><kbd>Z</kbd></button>
+                      <button class="drive-button drive-button--rotate" type="button" data-base-key="x" aria-label="Rotate right in place"><span>↷</span><kbd>X</kbd></button>
+                    </div>
+                    <div class="direction-pad">
+                      <button class="drive-button drive-button--up" type="button" data-base-key="w" aria-label="Drive forward"><span>↑</span><kbd>W</kbd></button>
+                      <button class="drive-button drive-button--left" type="button" data-base-key="a" aria-label="Strafe left"><span>←</span><kbd>A</kbd></button>
+                      <span class="drive-center" aria-hidden="true"><i></i></span>
+                      <button class="drive-button drive-button--right" type="button" data-base-key="d" aria-label="Strafe right"><span>→</span><kbd>D</kbd></button>
+                      <button class="drive-button drive-button--down" type="button" data-base-key="s" aria-label="Drive backward"><span>↓</span><kbd>S</kbd></button>
+                    </div>
+                  </div>
+                  <fieldset class="speed-selector" id="speed-selector">
+                    <legend>Motion speed</legend>
+                    <button type="button" data-speed="0" class="is-active"><strong>Slow</strong><small>0.08 m/s</small></button>
+                    <button type="button" data-speed="1"><strong>Medium</strong><small>0.16 m/s</small></button>
+                    <button type="button" data-speed="2"><strong>Fast</strong><small>0.25 m/s</small></button>
+                  </fieldset>
+                </div>
+
+                <div class="arm-control-group">
+                  <div class="control-subheading">
+                    <div><h4>Follower arm</h4><p>Take over from the physical leader, then jog one joint.</p></div>
+                    <label class="arm-takeover" for="arm-takeover"><input id="arm-takeover" type="checkbox" aria-label="Take arm control"><span>Take arm control</span></label>
+                  </div>
+                  <div class="joint-jog-list" id="joint-jog-list">
+                    <div class="joint-jog" data-joint="arm_shoulder_pan.pos"><span><strong>Shoulder pan</strong><output>—</output></span><div><button type="button" data-direction="-1" aria-label="Decrease shoulder pan">−</button><button type="button" data-direction="1" aria-label="Increase shoulder pan">+</button></div></div>
+                    <div class="joint-jog" data-joint="arm_shoulder_lift.pos"><span><strong>Shoulder lift</strong><output>—</output></span><div><button type="button" data-direction="-1" aria-label="Decrease shoulder lift">−</button><button type="button" data-direction="1" aria-label="Increase shoulder lift">+</button></div></div>
+                    <div class="joint-jog" data-joint="arm_elbow_flex.pos"><span><strong>Elbow flex</strong><output>—</output></span><div><button type="button" data-direction="-1" aria-label="Decrease elbow flex">−</button><button type="button" data-direction="1" aria-label="Increase elbow flex">+</button></div></div>
+                    <div class="joint-jog" data-joint="arm_wrist_flex.pos"><span><strong>Wrist flex</strong><output>—</output></span><div><button type="button" data-direction="-1" aria-label="Decrease wrist flex">−</button><button type="button" data-direction="1" aria-label="Increase wrist flex">+</button></div></div>
+                    <div class="joint-jog" data-joint="arm_wrist_roll.pos"><span><strong>Wrist roll</strong><output>—</output></span><div><button type="button" data-direction="-1" aria-label="Decrease wrist roll">−</button><button type="button" data-direction="1" aria-label="Increase wrist roll">+</button></div></div>
+                    <div class="joint-jog joint-jog--gripper" data-joint="arm_gripper.pos"><span><strong>Gripper</strong><output>—</output></span><div><button type="button" data-direction="-1" aria-label="Close gripper">Close</button><button type="button" data-direction="1" aria-label="Open gripper">Open</button></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="control-safety" id="control-safety" role="status">
+                <span aria-hidden="true">◎</span>
+                <p><strong>Controls are locked.</strong> Lift the base for first tests, clear the arm’s workspace, then enable dashboard control.</p>
+              </div>
+            </section>
+          </div>
         </section>
 
         <section class="twin-shell" aria-labelledby="twin-title">
@@ -306,7 +403,7 @@ FORM: Modern smart-device fleet console, grounded candidate seven; a visible tra
         </section>
       </main>
 
-      <footer><span id="footer-topology">LeKiwi motor network · 9 expected devices</span><span>Safe, read-only inspection</span></footer>
+      <footer><span id="footer-topology">LeKiwi motor network · 9 expected devices</span><span id="footer-mode">Safe, read-only inspection</span></footer>
     </div>
 
     <template id="motor-row-template">

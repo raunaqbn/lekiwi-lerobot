@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import time
 from dataclasses import dataclass
 
 import pytest
@@ -15,7 +16,9 @@ from lerobot.robots.lekiwi.live_diagnostics import (
     BusOwnedError,
     EmbeddedDiagnosticsConfig,
     LiveDiagnosticsSampler,
+    MutableCameraFrameCache,
     MutableSnapshotCache,
+    TeleopControlBridge,
     calibrated_degrees_to_radians,
     create_cached_app,
     gripper_percent_to_radians,
@@ -96,8 +99,16 @@ def test_sampler_integrates_continuous_wheel_angle_and_publishes_joint_radians(m
     monkeypatch.setattr("lerobot.robots.lekiwi.live_diagnostics.time.perf_counter", lambda: next(clock))
     sampler = LiveDiagnosticsSampler(bus, EmbeddedDiagnosticsConfig("follower", "/dev/test"))
     positions = dict.fromkeys(names[:5], 0.0) | {"arm_gripper": 50.0}
-    sampler.sample(positions, wheel_velocity_raw=dict.fromkeys(names[6:], 4096), body_velocity={"x.vel": 0, "y.vel": 0, "theta.vel": 0})
-    sampler.sample(positions, wheel_velocity_raw=dict.fromkeys(names[6:], 4096), body_velocity={"x.vel": 0, "y.vel": 0, "theta.vel": 0})
+    sampler.sample(
+        positions,
+        wheel_velocity_raw=dict.fromkeys(names[6:], 4096),
+        body_velocity={"x.vel": 0, "y.vel": 0, "theta.vel": 0},
+    )
+    sampler.sample(
+        positions,
+        wheel_velocity_raw=dict.fromkeys(names[6:], 4096),
+        body_velocity={"x.vel": 0, "y.vel": 0, "theta.vel": 0},
+    )
     state = sampler.snapshot()
     left = next(motor for motor in state["motors"] if motor["name"] == "base_left_wheel")
     assert left["joint_position_rad"] == pytest.approx(math.pi)  # dt is capped at 0.5 s
@@ -154,13 +165,15 @@ def test_servo_rail_transition_is_reported_without_restarting(monkeypatch):
 
 def test_cached_feed_goes_stale_after_two_seconds(monkeypatch):
     cache = MutableSnapshotCache("follower")
-    cache.publish({
-        "last_update": "2026-08-09T00:00:00+00:00",
-        "connected": True,
-        "overall": "healthy",
-        "counts": {"detected": 9},
-        "motors": [{"severity": "healthy"}],
-    })
+    cache.publish(
+        {
+            "last_update": "2026-08-09T00:00:00+00:00",
+            "connected": True,
+            "overall": "healthy",
+            "counts": {"detected": 9},
+            "motors": [{"severity": "healthy"}],
+        }
+    )
     monkeypatch.setattr("lerobot.robots.lekiwi.live_diagnostics.time.time", lambda: 1_786_233_605.0)
     state = cache.snapshot()
     assert state["stale"] is True
@@ -193,6 +206,8 @@ def test_odometry_reset_is_a_persistent_visualization_origin():
 def test_sse_endpoint_delivers_cached_state_without_bus_access():
     cache = MutableSnapshotCache("follower")
     app = create_cached_app(cache)
+    assert app.config["TEMPLATES_AUTO_RELOAD"] is True
+    assert app.jinja_env.auto_reload is True
     response = app.test_client().get("/api/stream", buffered=False)
     first = next(response.response).decode()
     response.close()
@@ -224,3 +239,154 @@ def test_protocol_mismatch_fails_clearly():
     with pytest.raises(ProtocolCompatibilityError, match="matching v0.6.1"):
         client._validate_protocol([json.dumps({"_protocol": "legacy-0.3.4"}).encode()])
     client._validate_protocol([json.dumps({"_protocol": PROTOCOL_VERSION}).encode()])
+
+
+def test_camera_cache_is_latest_only_and_reports_staleness():
+    cache = MutableCameraFrameCache(("front", "wrist"))
+    cache.publish("front", b"jpeg-one")
+    first, first_revision = cache.wait_for_frame("front")
+    assert first == b"jpeg-one"
+    cache.publish("front", b"jpeg-two")
+    second, second_revision = cache.wait_for_frame("front", first_revision)
+    assert second == b"jpeg-two"
+    assert second_revision == first_revision + 1
+    status = cache.status()
+    assert status["front"]["available"] is True
+    assert status["front"]["stale"] is False
+    assert status["wrist"]["available"] is False
+
+
+def test_client_publishes_transport_jpegs_to_dashboard_cache():
+    client = LeKiwiClient.__new__(LeKiwiClient)
+    client.diagnostics_cache = MutableSnapshotCache("follower")
+    client.camera_cache = MutableCameraFrameCache(("front", "wrist"))
+    header = {
+        "_protocol": PROTOCOL_VERSION,
+        "_diagnostics": {"last_update": "2099-01-01T00:00:00+00:00"},
+        "_cams": ["front", "wrist"],
+        "x.vel": 0.0,
+    }
+    parsed = client._parse_observation([json.dumps(header).encode(), b"front-jpeg", b"wrist-jpeg"])
+    assert parsed["front"] == b"front-jpeg"
+    assert client.camera_cache.wait_for_frame("wrist")[0] == b"wrist-jpeg"
+
+
+def test_dashboard_base_controls_are_deadman_pulses():
+    bridge = TeleopControlBridge(pulse_s=0.35)
+    bridge.set_permitted(True, "ready")
+    bridge.set_enabled(True)
+    bridge.set_speed(1)
+    bridge.pulse_base("z", True)
+    arm = dict.fromkeys(
+        (
+            "arm_shoulder_pan.pos",
+            "arm_shoulder_lift.pos",
+            "arm_elbow_flex.pos",
+            "arm_wrist_flex.pos",
+            "arm_wrist_roll.pos",
+            "arm_gripper.pos",
+        ),
+        0.0,
+    )
+    now = time.monotonic()
+    _arm, base = bridge.apply(arm, {"x.vel": 0.0, "y.vel": 0.0, "theta.vel": 0.0}, arm, now=now)
+    assert base == {"x.vel": 0.0, "y.vel": 0.0, "theta.vel": 50.0}
+    _arm, expired = bridge.apply(
+        arm,
+        {"x.vel": 0.0, "y.vel": 0.0, "theta.vel": 0.0},
+        arm,
+        now=now + 1.0,
+    )
+    assert expired["theta.vel"] == 0.0
+
+
+def test_arm_takeover_starts_from_follower_pose_and_jogs_gradually():
+    bridge = TeleopControlBridge()
+    bridge.set_permitted(True, "ready")
+    bridge.set_enabled(True)
+    bridge.set_arm_takeover(True)
+    leader = dict.fromkeys(
+        (
+            "arm_shoulder_pan.pos",
+            "arm_shoulder_lift.pos",
+            "arm_elbow_flex.pos",
+            "arm_wrist_flex.pos",
+            "arm_wrist_roll.pos",
+            "arm_gripper.pos",
+        ),
+        80.0,
+    )
+    follower = dict.fromkeys(leader, 10.0)
+    now = time.monotonic()
+    held, _base = bridge.apply(leader, {"x.vel": 0, "y.vel": 0, "theta.vel": 0}, follower, now=now)
+    assert held["arm_elbow_flex.pos"] == 10.0
+    bridge.pulse_joint("arm_elbow_flex.pos", 1, True)
+    moved, _base = bridge.apply(
+        leader,
+        {"x.vel": 0, "y.vel": 0, "theta.vel": 0},
+        follower,
+        now=now + 0.1,
+    )
+    assert moved["arm_elbow_flex.pos"] == pytest.approx(12.4)
+    assert moved["arm_shoulder_pan.pos"] == 10.0
+
+
+def test_stop_latches_zero_base_and_observed_arm_pose():
+    bridge = TeleopControlBridge()
+    bridge.set_permitted(True, "ready")
+    bridge.set_enabled(True)
+    bridge.stop()
+    leader = dict.fromkeys(
+        (
+            "arm_shoulder_pan.pos",
+            "arm_shoulder_lift.pos",
+            "arm_elbow_flex.pos",
+            "arm_wrist_flex.pos",
+            "arm_wrist_roll.pos",
+            "arm_gripper.pos",
+        ),
+        60.0,
+    )
+    follower = dict.fromkeys(leader, 15.0)
+    arm, base = bridge.apply(leader, {"x.vel": 0.2, "y.vel": 0, "theta.vel": 30}, follower)
+    assert set(arm.values()) == {15.0}
+    assert base == {"x.vel": 0.0, "y.vel": 0.0, "theta.vel": 0.0}
+    assert bridge.status()["stop_latched"] is True
+
+
+class CachedControlProvider:
+    def __init__(self):
+        self.controls = TeleopControlBridge()
+        self.controls.set_permitted(True, "ready")
+        self.cameras = MutableCameraFrameCache(("front",))
+
+    def snapshot(self):
+        return {"control": self.controls.status(), "sample_mode": "embedded_control_loop"}
+
+    def reset_odometry(self):
+        pass
+
+
+def test_control_endpoint_requires_same_origin_json_header():
+    provider = CachedControlProvider()
+    app = create_cached_app(provider)
+    rejected = app.test_client().post("/api/control/enable", json={"enabled": True})
+    assert rejected.status_code == 409
+    accepted = app.test_client().post(
+        "/api/control/enable",
+        json={"enabled": True},
+        headers={"X-LeKiwi-Control": "dashboard-v1"},
+    )
+    assert accepted.status_code == 200
+    assert provider.controls.status()["enabled"] is True
+
+
+def test_camera_stream_serves_cached_jpeg_without_hardware_access():
+    provider = CachedControlProvider()
+    provider.cameras.publish("front", b"fake-jpeg")
+    app = create_cached_app(provider)
+    response = app.test_client().get("/api/cameras/front/stream", buffered=False)
+    first = next(response.response)
+    response.close()
+    assert b"Content-Type: image/jpeg" in first
+    assert b"fake-jpeg" in first

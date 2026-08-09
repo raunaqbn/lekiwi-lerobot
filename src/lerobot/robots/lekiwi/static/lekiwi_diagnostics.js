@@ -72,6 +72,23 @@ const elements = {
   batteryEnergy: document.querySelector("#battery-energy"),
   batteryFill: document.querySelector("#battery-fill"),
   batteryDetail: document.querySelector("#battery-detail"),
+  accessModeBadge: document.querySelector("#access-mode-badge"),
+  accessModeLabel: document.querySelector("#access-mode-label"),
+  footerMode: document.querySelector("#footer-mode"),
+  controlEnabled: document.querySelector("#control-enabled"),
+  controlStateChip: document.querySelector("#control-state-chip"),
+  controlPermitReason: document.querySelector("#control-permit-reason"),
+  armTakeover: document.querySelector("#arm-takeover"),
+  stopMotion: document.querySelector("#stop-motion"),
+  baseCommandOutput: document.querySelector("#base-command-output"),
+  baseButtons: document.querySelectorAll("[data-base-key]"),
+  speedButtons: document.querySelectorAll("#speed-selector [data-speed]"),
+  jointRows: document.querySelectorAll(".joint-jog[data-joint]"),
+  controlSafety: document.querySelector("#control-safety"),
+  cameraHealth: document.querySelector("#camera-health"),
+  cameraViews: document.querySelectorAll(".camera-view[data-camera]"),
+  frontCameraAge: document.querySelector("#front-camera-age"),
+  wristCameraAge: document.querySelector("#wrist-camera-age"),
 };
 
 const severityCopy = {
@@ -89,6 +106,18 @@ let activeFilter = "all";
 let initialAutodetectRequested = false;
 let eventSource = null;
 let lastFullRenderAt = 0;
+const holdTimers = new Map();
+const operationUiReady = [
+  elements.accessModeLabel,
+  elements.footerMode,
+  elements.controlEnabled,
+  elements.controlStateChip,
+  elements.controlPermitReason,
+  elements.armTakeover,
+  elements.stopMotion,
+  elements.controlSafety,
+  elements.cameraHealth,
+].every(Boolean);
 
 function format(value, suffix = "") {
   return value === null || value === undefined ? "—" : `${value}${suffix}`;
@@ -267,6 +296,132 @@ async function saveFollower() {
   }
 }
 
+async function sendControl(path, payload, { renderState = true } = {}) {
+  try {
+    const response = await fetch(path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-LeKiwi-Control": "dashboard-v1",
+      },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+    if (renderState && result.state) render(result.state);
+    if (!response.ok) throw new Error(result.error || `Control request failed (HTTP ${response.status})`);
+    return result;
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+function bindDeadmanButton(button, path, payload, onVisualState) {
+  const stop = () => {
+    const timer = holdTimers.get(button);
+    if (timer) window.clearInterval(timer);
+    holdTimers.delete(button);
+    if (!button.classList.contains("is-pressed")) return;
+    button.classList.remove("is-pressed");
+    onVisualState?.(false);
+    void sendControl(path, { ...payload, active: false }, { renderState: false }).catch(() => {});
+  };
+
+  button.addEventListener("pointerdown", (event) => {
+    if (button.disabled) return;
+    event.preventDefault();
+    button.setPointerCapture?.(event.pointerId);
+    button.classList.add("is-pressed");
+    onVisualState?.(true);
+    const pulse = () => void sendControl(path, { ...payload, active: true }, { renderState: false }).catch(stop);
+    pulse();
+    holdTimers.set(button, window.setInterval(pulse, 180));
+  });
+  button.addEventListener("pointerup", stop);
+  button.addEventListener("pointercancel", stop);
+  button.addEventListener("lostpointercapture", stop);
+  button.addEventListener("contextmenu", (event) => event.preventDefault());
+}
+
+function renderOperation(state) {
+  // A long-running Flask process can retain an older Jinja template while
+  // static assets are refreshed from disk. Keep the core diagnostics feed
+  // usable until that process is restarted instead of failing the full render.
+  if (!operationUiReady) return;
+
+  const control = state.control || {};
+  const available = Boolean(control.available);
+  const permitted = Boolean(control.permitted);
+  const enabled = Boolean(control.enabled);
+  const armTakeover = Boolean(control.arm_takeover);
+  const stopped = Boolean(control.stop_latched);
+
+  elements.accessModeLabel.textContent = available ? "Teleop control" : "Read only";
+  elements.footerMode.textContent = available ? "Cached telemetry · owner-loop controls" : "Safe, read-only inspection";
+  elements.controlEnabled.checked = enabled;
+  elements.controlEnabled.disabled = !available || (!permitted && !enabled);
+  elements.controlPermitReason.textContent = control.permit_reason || "Start teleoperation to enable controls.";
+  elements.armTakeover.checked = armTakeover;
+  elements.armTakeover.disabled = !enabled;
+  elements.stopMotion.disabled = !available;
+
+  let stateLabel = "Unavailable";
+  let stateKey = "offline";
+  if (stopped) {
+    stateLabel = "Stop latched";
+    stateKey = "stopped";
+  } else if (enabled) {
+    stateLabel = armTakeover ? "Base + arm armed" : "Base armed";
+    stateKey = "armed";
+  } else if (permitted) {
+    stateLabel = "Ready to enable";
+    stateKey = "ready";
+  }
+  elements.controlStateChip.textContent = stateLabel;
+  elements.controlStateChip.dataset.state = stateKey;
+  elements.controlSafety.dataset.state = stateKey;
+  if (stopped) {
+    elements.controlSafety.innerHTML = "<span aria-hidden=\"true\">■</span><p><strong>Motion stop is latched.</strong> Base velocity is zero and the follower arm is holding its observed pose. Re-enable dashboard control to resume.</p>";
+  } else if (enabled) {
+    elements.controlSafety.innerHTML = "<span aria-hidden=\"true\">●</span><p><strong>Dashboard control is armed.</strong> Every movement button is a dead-man control; release it to stop. Stop motion remains available at all times.</p>";
+  } else {
+    elements.controlSafety.innerHTML = "<span aria-hidden=\"true\">◎</span><p><strong>Controls are locked.</strong> Lift the base for first tests, clear the arm’s workspace, then enable dashboard control.</p>";
+  }
+
+  elements.baseButtons.forEach((button) => { button.disabled = !enabled; });
+  elements.speedButtons.forEach((button) => {
+    button.disabled = !enabled;
+    button.classList.toggle("is-active", Number(button.dataset.speed) === Number(control.speed_index || 0));
+  });
+  elements.jointRows.forEach((row) => {
+    row.querySelectorAll("button").forEach((button) => { button.disabled = !enabled || !armTakeover; });
+  });
+
+  const followerMotors = state.sources?.follower?.motors || [];
+  elements.jointRows.forEach((row) => {
+    const motorName = row.dataset.joint.replace(/\.pos$/, "");
+    const motor = followerMotors.find((candidate) => candidate.name === motorName);
+    const value = motor?.position_deg;
+    row.querySelector("output").textContent = Number.isFinite(value)
+      ? `${value.toFixed(1)}${motorName === "arm_gripper" ? "%" : "°"}`
+      : "—";
+  });
+
+  const cameras = state.cameras || {};
+  let liveCameras = 0;
+  elements.cameraViews.forEach((view) => {
+    const status = cameras[view.dataset.camera] || {};
+    const stale = !status.available || status.stale;
+    view.dataset.stale = String(stale);
+    if (!stale) liveCameras += 1;
+    const age = status.last_update ? timeAgo(status.last_update).replace("Updated ", "") : "No frame";
+    const target = view.dataset.camera === "front" ? elements.frontCameraAge : elements.wristCameraAge;
+    target.textContent = age;
+  });
+  elements.cameraHealth.dataset.severity = liveCameras === 2 ? "healthy" : liveCameras ? "warning" : "offline";
+  elements.cameraHealth.textContent = liveCameras === 2 ? "2 cameras live" : liveCameras ? "1 camera live" : "Waiting for frames";
+}
+
 function showError(message) {
   elements.errorMessage.textContent = message;
   elements.errorBanner.hidden = false;
@@ -319,6 +474,7 @@ function render(state) {
   renderFindings(state.sources);
   renderPower(follower.power);
   renderBattery(state.battery);
+  renderOperation(state);
   window.lekiwiTwin?.update(state);
 
   const timestamps = [leader.last_update, follower.last_update].filter(Boolean).sort();
@@ -534,6 +690,56 @@ elements.copyCommand?.addEventListener("click", async () => {
   await navigator.clipboard.writeText(elements.launchCommand.textContent);
   elements.copyCommand.textContent = "Copied";
   window.setTimeout(() => { elements.copyCommand.textContent = "Copy"; }, 1200);
+});
+
+elements.controlEnabled?.addEventListener("change", async () => {
+  try {
+    await sendControl("/api/control/enable", { enabled: elements.controlEnabled.checked });
+  } catch (_error) {
+    elements.controlEnabled.checked = false;
+  }
+});
+
+elements.armTakeover?.addEventListener("change", async () => {
+  try {
+    await sendControl("/api/control/arm", { enabled: elements.armTakeover.checked });
+  } catch (_error) {
+    elements.armTakeover.checked = false;
+  }
+});
+
+elements.stopMotion?.addEventListener("click", async () => {
+  elements.baseCommandOutput.textContent = "Stopped";
+  elements.baseButtons.forEach((button) => button.classList.remove("is-pressed"));
+  elements.jointRows.forEach((row) => row.querySelectorAll("button").forEach((button) => button.classList.remove("is-pressed")));
+  await sendControl("/api/control/stop", {});
+});
+
+elements.speedButtons.forEach((button) => button.addEventListener("click", async () => {
+  await sendControl("/api/control/speed", { speed: Number(button.dataset.speed) });
+}));
+
+const baseLabels = {
+  w: "Forward",
+  s: "Backward",
+  a: "Strafe left",
+  d: "Strafe right",
+  z: "Rotate left",
+  x: "Rotate right",
+};
+elements.baseButtons.forEach((button) => bindDeadmanButton(
+  button,
+  "/api/control/base",
+  { key: button.dataset.baseKey },
+  (pressed) => { elements.baseCommandOutput.textContent = pressed ? baseLabels[button.dataset.baseKey] : "Stopped"; },
+));
+
+elements.jointRows.forEach((row) => {
+  row.querySelectorAll("button[data-direction]").forEach((button) => bindDeadmanButton(
+    button,
+    "/api/control/joint",
+    { joint: row.dataset.joint, direction: Number(button.dataset.direction) },
+  ));
 });
 
 if (isFilePreview) {

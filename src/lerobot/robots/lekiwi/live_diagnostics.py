@@ -24,7 +24,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol
 
-from flask import Flask, Response, jsonify, render_template, stream_with_context
+from flask import Flask, Response, jsonify, render_template, request, stream_with_context
 from werkzeug.serving import BaseWSGIServer, make_server
 
 from .diagnostics import (
@@ -42,6 +42,18 @@ SCHEMA_VERSION = "2.0"
 PROTOCOL_VERSION = "lekiwi-v061-live-telemetry-v1"
 JOINT_FRAME = "lekiwi-fusion-cad-v1"
 STALE_AFTER_S = 2.0
+CONTROL_PULSE_S = 0.35
+
+ARM_CONTROL_LIMITS: dict[str, tuple[float, float]] = {
+    "arm_shoulder_pan.pos": (-100.0, 100.0),
+    "arm_shoulder_lift.pos": (-100.0, 100.0),
+    "arm_elbow_flex.pos": (-100.0, 100.0),
+    "arm_wrist_flex.pos": (-100.0, 100.0),
+    "arm_wrist_roll.pos": (-180.0, 180.0),
+    "arm_gripper.pos": (0.0, 100.0),
+}
+ARM_CONTROL_RATES = {name: (35.0 if name == "arm_gripper.pos" else 24.0) for name in ARM_CONTROL_LIMITS}
+BASE_CONTROL_KEYS = frozenset("wasdzx")
 
 FOLLOWER_NAMES = (
     "arm_shoulder_pan",
@@ -180,7 +192,9 @@ class BusLease:
         except BlockingIOError as exc:
             current_owner = handle.read().strip() or "another LeRobot process"
             handle.close()
-            raise BusOwnedError(f"Motor bus is owned by {current_owner}; diagnostics will use its embedded feed.") from exc
+            raise BusOwnedError(
+                f"Motor bus is owned by {current_owner}; diagnostics will use its embedded feed."
+            ) from exc
         handle.seek(0)
         handle.truncate()
         handle.write(self.owner)
@@ -415,14 +429,30 @@ class LiveDiagnosticsSampler:
                 "critical": sum(motor["severity"] == "critical" for motor in motors),
                 "unpowered": sum(motor["severity"] == "unpowered" for motor in motors),
             }
-            overall = "offline" if stale else "critical" if counts["critical"] else "warning" if counts["warning"] or counts["unpowered"] else "healthy"
+            overall = (
+                "offline"
+                if stale
+                else "critical"
+                if counts["critical"]
+                else "warning"
+                if counts["warning"] or counts["unpowered"]
+                else "healthy"
+            )
             voltages = [motor["voltage_v"] for motor in motors if motor.get("voltage_v") is not None]
             voltage = round(sum(voltages) / len(voltages), 1) if voltages else None
             findings = []
             if stale:
-                findings.append({"severity": "offline", "title": "Telemetry feed", "detail": "No control-loop sample arrived within two seconds."})
+                findings.append(
+                    {
+                        "severity": "offline",
+                        "title": "Telemetry feed",
+                        "detail": "No control-loop sample arrived within two seconds.",
+                    }
+                )
             for field, error in self._errors.items():
-                findings.append({"severity": "warning", "title": f"{field} sample", "detail": error["message"]})
+                findings.append(
+                    {"severity": "warning", "title": f"{field} sample", "detail": error["message"]}
+                )
 
             return {
                 "schema_version": SCHEMA_VERSION,
@@ -521,33 +551,297 @@ class MutableSnapshotCache:
         return value
 
 
+class MutableCameraFrameCache:
+    """Latest-only JPEG cache populated by the ZMQ receive loop.
+
+    HTTP camera handlers wait on this cache and never touch an OpenCV device or
+    the follower's motor bus.  Revisions let slow browsers drop frames instead
+    of building an unbounded video queue.
+    """
+
+    def __init__(self, names: tuple[str, ...] = ("front", "wrist")):
+        self.names = names
+        self._frames: dict[str, bytes] = {}
+        self._updated_at: dict[str, str] = {}
+        self._updated_epoch: dict[str, float] = {}
+        self._revisions: dict[str, int] = dict.fromkeys(names, 0)
+        self._condition = threading.Condition(threading.RLock())
+
+    def publish(self, name: str, jpeg: bytes) -> None:
+        if name not in self.names or not jpeg:
+            return
+        with self._condition:
+            self._frames[name] = bytes(jpeg)
+            self._updated_at[name] = utc_now()
+            self._updated_epoch[name] = time.time()
+            self._revisions[name] = self._revisions.get(name, 0) + 1
+            self._condition.notify_all()
+
+    def wait_for_frame(
+        self, name: str, after_revision: int = -1, timeout_s: float = 2.0
+    ) -> tuple[bytes, int] | None:
+        if name not in self.names:
+            return None
+        deadline = time.monotonic() + timeout_s
+        with self._condition:
+            while self._revisions.get(name, 0) <= after_revision:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return None
+                self._condition.wait(remaining)
+            frame = self._frames.get(name)
+            if frame is None:
+                return None
+            return frame, self._revisions[name]
+
+    def status(self) -> dict[str, dict[str, Any]]:
+        now = time.time()
+        with self._condition:
+            return {
+                name: {
+                    "available": name in self._frames,
+                    "last_update": self._updated_at.get(name),
+                    "sample_age_s": (
+                        None if name not in self._updated_epoch else max(0.0, now - self._updated_epoch[name])
+                    ),
+                    "stale": name not in self._updated_epoch
+                    or now - self._updated_epoch[name] > STALE_AFTER_S,
+                    "stream_url": f"/api/cameras/{name}/stream",
+                }
+                for name in self.names
+            }
+
+
+class TeleopControlBridge:
+    """Thread-safe dashboard intent consumed only by the teleop control loop.
+
+    Flask handlers update short-lived intent.  They never send a ZMQ command or
+    access either serial bus.  The 30 Hz owner calls :meth:`apply` to merge that
+    intent into its normal action, preserving bus exclusivity and watchdogs.
+    """
+
+    SPEED_LEVELS = (
+        {"label": "slow", "xy": 0.08, "theta": 25.0},
+        {"label": "medium", "xy": 0.16, "theta": 50.0},
+        {"label": "fast", "xy": 0.25, "theta": 75.0},
+    )
+
+    def __init__(self, pulse_s: float = CONTROL_PULSE_S):
+        self.pulse_s = pulse_s
+        self._lock = threading.RLock()
+        self._enabled = False
+        self._permitted = False
+        self._permit_reason = "Waiting for live follower telemetry."
+        self._arm_takeover = False
+        self._stop_latched = False
+        self._speed_index = 0
+        self._base_expiry: dict[str, float] = {}
+        self._joint_expiry: dict[str, tuple[float, float]] = {}
+        self._arm_targets: dict[str, float] | None = None
+        self._last_apply_at: float | None = None
+        self._last_command_at: str | None = None
+
+    def set_permitted(self, permitted: bool, reason: str) -> None:
+        with self._lock:
+            self._permitted = bool(permitted)
+            self._permit_reason = reason
+            if not self._permitted:
+                self._enabled = False
+                self._arm_takeover = False
+                self._clear_motion_locked()
+
+    def set_enabled(self, enabled: bool) -> None:
+        with self._lock:
+            if enabled and not self._permitted:
+                raise RuntimeError(self._permit_reason)
+            self._enabled = bool(enabled)
+            self._stop_latched = False if enabled else self._stop_latched
+            if not enabled:
+                self._arm_takeover = False
+                self._arm_targets = None
+                self._clear_motion_locked()
+            self._touch_locked()
+
+    def set_speed(self, index: int) -> None:
+        with self._lock:
+            self._require_enabled_locked()
+            if index not in range(len(self.SPEED_LEVELS)):
+                raise ValueError("speed must be 0, 1, or 2")
+            self._speed_index = index
+            self._touch_locked()
+
+    def pulse_base(self, key: str, active: bool) -> None:
+        key = str(key).lower()
+        if key not in BASE_CONTROL_KEYS:
+            raise ValueError("base key must be one of W, A, S, D, Z, or X")
+        with self._lock:
+            self._require_enabled_locked()
+            if active:
+                self._base_expiry[key] = time.monotonic() + self.pulse_s
+            else:
+                self._base_expiry.pop(key, None)
+            self._touch_locked()
+
+    def set_arm_takeover(self, enabled: bool) -> None:
+        with self._lock:
+            self._require_enabled_locked()
+            self._arm_takeover = bool(enabled)
+            self._arm_targets = None
+            self._joint_expiry.clear()
+            self._last_apply_at = None
+            self._touch_locked()
+
+    def pulse_joint(self, joint: str, direction: float, active: bool) -> None:
+        if joint not in ARM_CONTROL_LIMITS:
+            raise ValueError(f"unknown arm joint: {joint}")
+        direction = float(direction)
+        if direction not in {-1.0, 1.0}:
+            raise ValueError("joint direction must be -1 or 1")
+        with self._lock:
+            self._require_enabled_locked()
+            if not self._arm_takeover:
+                raise RuntimeError("Enable arm control before jogging a joint")
+            if active:
+                self._joint_expiry[joint] = (direction, time.monotonic() + self.pulse_s)
+            else:
+                self._joint_expiry.pop(joint, None)
+            self._touch_locked()
+
+    def stop(self) -> None:
+        """Latch zero base velocity and hold the observed arm until re-enabled."""
+        with self._lock:
+            self._stop_latched = True
+            self._enabled = False
+            self._arm_takeover = True
+            self._arm_targets = None
+            self._clear_motion_locked()
+            self._touch_locked()
+
+    def _touch_locked(self) -> None:
+        self._last_command_at = utc_now()
+
+    def _clear_motion_locked(self) -> None:
+        self._base_expiry.clear()
+        self._joint_expiry.clear()
+
+    def _require_enabled_locked(self) -> None:
+        if not self._permitted:
+            raise RuntimeError(self._permit_reason)
+        if not self._enabled:
+            raise RuntimeError("Enable dashboard control first")
+        if self._stop_latched:
+            raise RuntimeError("Stop is latched; enable dashboard control to resume")
+
+    def _fresh_base_keys_locked(self, now: float) -> set[str]:
+        for key in [key for key, expiry in self._base_expiry.items() if expiry <= now]:
+            del self._base_expiry[key]
+        return set(self._base_expiry)
+
+    def _base_action_locked(self, keys: set[str]) -> dict[str, float]:
+        speed = self.SPEED_LEVELS[self._speed_index]
+        return {
+            "x.vel": speed["xy"] * (int("w" in keys) - int("s" in keys)),
+            "y.vel": speed["xy"] * (int("a" in keys) - int("d" in keys)),
+            "theta.vel": speed["theta"] * (int("z" in keys) - int("x" in keys)),
+        }
+
+    def apply(
+        self,
+        arm_action: dict[str, float],
+        base_action: dict[str, float],
+        observation: dict[str, Any],
+        *,
+        now: float | None = None,
+    ) -> tuple[dict[str, float], dict[str, float]]:
+        """Merge cached web intent; called synchronously by the 30 Hz owner."""
+        now = time.monotonic() if now is None else now
+        with self._lock:
+            if self._stop_latched:
+                if self._arm_targets is None:
+                    self._arm_targets = {
+                        name: float(observation.get(name, arm_action.get(name, 0.0)))
+                        for name in ARM_CONTROL_LIMITS
+                    }
+                return dict(self._arm_targets), {"x.vel": 0.0, "y.vel": 0.0, "theta.vel": 0.0}
+
+            if not self._enabled or not self._permitted:
+                self._arm_targets = None
+                self._last_apply_at = now
+                return dict(arm_action), dict(base_action)
+
+            keys = self._fresh_base_keys_locked(now)
+            merged_base = self._base_action_locked(keys) if keys else dict(base_action)
+
+            if not self._arm_takeover:
+                self._arm_targets = None
+                self._last_apply_at = now
+                return dict(arm_action), merged_base
+
+            if self._arm_targets is None:
+                self._arm_targets = {
+                    name: float(observation.get(name, arm_action.get(name, 0.0)))
+                    for name in ARM_CONTROL_LIMITS
+                }
+            dt_s = 0.0 if self._last_apply_at is None else min(max(0.0, now - self._last_apply_at), 0.1)
+            self._last_apply_at = now
+            for joint in [
+                joint for joint, (_direction, expiry) in self._joint_expiry.items() if expiry <= now
+            ]:
+                del self._joint_expiry[joint]
+            for joint, (direction, _expiry) in self._joint_expiry.items():
+                low, high = ARM_CONTROL_LIMITS[joint]
+                target = self._arm_targets[joint] + direction * ARM_CONTROL_RATES[joint] * dt_s
+                self._arm_targets[joint] = min(high, max(low, target))
+            return dict(self._arm_targets), merged_base
+
+    def status(self) -> dict[str, Any]:
+        with self._lock:
+            speed = self.SPEED_LEVELS[self._speed_index]
+            return {
+                "available": True,
+                "permitted": self._permitted,
+                "permit_reason": self._permit_reason,
+                "enabled": self._enabled,
+                "arm_takeover": self._arm_takeover,
+                "stop_latched": self._stop_latched,
+                "speed_index": self._speed_index,
+                "speed_label": speed["label"],
+                "xy_speed_m_s": speed["xy"],
+                "theta_speed_deg_s": speed["theta"],
+                "last_command_at": self._last_command_at,
+                "deadman_timeout_s": self.pulse_s,
+            }
+
+
 def _empty_cached_source(role: str) -> dict[str, Any]:
     names = LEADER_NAMES if role == "leader" else FOLLOWER_NAMES
     profile = SO101_LEADER_PROFILE if role == "leader" else LEKIWI_FOLLOWER_PROFILE
     motors = []
     for index, bus_name in enumerate(names, 1):
         public = bus_name if bus_name.startswith(("arm_", "base_")) else f"arm_{bus_name}"
-        motors.append({
-            "name": public,
-            "bus_name": bus_name,
-            "label": LABELS.get(public.removeprefix("arm_"), LABELS.get(public, public)),
-            "id": index,
-            "group": "base" if public.startswith("base_") else "arm",
-            "detected": False,
-            "model": "—",
-            "position_raw": None,
-            "position_deg": None,
-            "joint_position_rad": None,
-            "velocity_raw": None,
-            "velocity_deg_s": None,
-            "voltage_v": None,
-            "temperature_c": None,
-            "current_raw": None,
-            "torque_enabled": None,
-            "severity": "offline",
-            "findings": [],
-            "in_profile": True,
-        })
+        motors.append(
+            {
+                "name": public,
+                "bus_name": bus_name,
+                "label": LABELS.get(public.removeprefix("arm_"), LABELS.get(public, public)),
+                "id": index,
+                "group": "base" if public.startswith("base_") else "arm",
+                "detected": False,
+                "model": "—",
+                "position_raw": None,
+                "position_deg": None,
+                "joint_position_rad": None,
+                "velocity_raw": None,
+                "velocity_deg_s": None,
+                "voltage_v": None,
+                "temperature_c": None,
+                "current_raw": None,
+                "torque_enabled": None,
+                "severity": "offline",
+                "findings": [],
+                "in_profile": True,
+            }
+        )
     return {
         "schema_version": SCHEMA_VERSION,
         "protocol_version": PROTOCOL_VERSION,
@@ -562,12 +856,24 @@ def _empty_cached_source(role: str) -> dict[str, Any]:
         "poll_latency_ms": None,
         "overall": "offline",
         "error": "Waiting for teleoperation telemetry",
-        "counts": {"expected": len(names), "detected": 0, "healthy": 0, "warning": 0, "critical": 0, "unpowered": 0},
+        "counts": {
+            "expected": len(names),
+            "detected": 0,
+            "healthy": 0,
+            "warning": 0,
+            "critical": 0,
+            "unpowered": 0,
+        },
         "power": infer_power_state(False, 0, len(names)),
         "battery": estimate_battery(None),
         "motors": motors,
         "findings": [],
-        "profile": {"key": profile.key, "label": profile.label, "expected_ids": list(profile.expected_ids), "voltage_band": [profile.voltage_min, profile.voltage_max]},
+        "profile": {
+            "key": profile.key,
+            "label": profile.label,
+            "expected_ids": list(profile.expected_ids),
+            "voltage_band": [profile.voltage_min, profile.voltage_max],
+        },
         "stale": True,
         "read_only": True,
         "odometry": {"x": 0.0, "y": 0.0, "theta": 0.0, "estimated": True, "drift_prone": True},
@@ -575,15 +881,54 @@ def _empty_cached_source(role: str) -> dict[str, Any]:
 
 
 class AggregateSnapshotProvider:
-    def __init__(self, leader: SnapshotProvider, follower: SnapshotProvider):
+    def __init__(
+        self,
+        leader: SnapshotProvider,
+        follower: SnapshotProvider,
+        cameras: MutableCameraFrameCache | None = None,
+        controls: TeleopControlBridge | None = None,
+    ):
         self.leader = leader
         self.follower = follower
+        self.cameras = cameras
+        self.controls = controls
+
+    @staticmethod
+    def _control_permission(combined: dict[str, Any]) -> tuple[bool, str]:
+        leader = combined["sources"]["leader"]
+        follower = combined["sources"]["follower"]
+        if not leader.get("connected"):
+            return False, "Leader telemetry is offline."
+        if not follower.get("connected") or follower.get("stale"):
+            return False, "Follower telemetry is stale or offline."
+        if follower.get("power", {}).get("servo_rail") != "powered":
+            return False, "Follower servo power is not detected."
+        if follower.get("counts", {}).get("critical", 0):
+            return False, "Resolve critical follower motor faults before enabling controls."
+        if follower.get("counts", {}).get("detected") != follower.get("counts", {}).get("expected"):
+            return False, "All nine follower motors must be responding."
+        return True, "Live teleoperation owns the motor bus; dashboard intent is ready."
 
     def snapshot(self) -> dict[str, Any]:
         combined = combine_snapshots(self.leader.snapshot(), self.follower.snapshot(), "embedded://zmq")
         combined["schema_version"] = SCHEMA_VERSION
         combined["protocol_version"] = PROTOCOL_VERSION
         combined["sample_mode"] = "embedded_control_loop"
+        combined["read_only"] = self.controls is None
+        combined["cameras"] = self.cameras.status() if self.cameras is not None else {}
+        if self.controls is not None:
+            permitted, reason = self._control_permission(combined)
+            self.controls.set_permitted(permitted, reason)
+            combined["control"] = self.controls.status()
+        else:
+            combined["control"] = {
+                "available": False,
+                "permitted": False,
+                "permit_reason": "Start teleoperation to enable dashboard controls.",
+                "enabled": False,
+                "arm_takeover": False,
+                "stop_latched": False,
+            }
         return combined
 
     def reset_odometry(self) -> None:
@@ -593,6 +938,8 @@ class AggregateSnapshotProvider:
 def create_cached_app(provider: SnapshotProvider) -> Flask:
     """Create an HTTP/SSE app whose handlers only copy cached snapshots."""
     app = Flask(__name__)
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
+    app.jinja_env.auto_reload = True
     app.config["snapshot_provider"] = provider
 
     @app.get("/")
@@ -611,27 +958,131 @@ def create_cached_app(provider: SnapshotProvider) -> Flask:
                 yield f"event: state\ndata: {json.dumps(provider.snapshot(), separators=(',', ':'))}\n\n"
                 time.sleep(1.0 / 15.0)
 
-        return Response(events(), mimetype="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+        return Response(
+            events(),
+            mimetype="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
 
     @app.post("/api/odometry/reset")
     def api_odometry_reset():
         provider.reset_odometry()
         return jsonify({"ok": True, "state": provider.snapshot()})
 
+    @app.get("/api/cameras/<name>/stream")
+    def api_camera_stream(name: str):
+        camera_cache = getattr(provider, "cameras", None)
+        if camera_cache is None or name not in camera_cache.names:
+            return jsonify({"ok": False, "error": f"Camera {name!r} is not available"}), 404
+
+        def frames():
+            revision = -1
+            while True:
+                sample = camera_cache.wait_for_frame(name, revision, timeout_s=2.0)
+                if sample is None:
+                    continue
+                jpeg, revision = sample
+                yield (
+                    b"--frame\r\nContent-Type: image/jpeg\r\nCache-Control: no-store\r\n\r\n" + jpeg + b"\r\n"
+                )
+
+        return Response(
+            stream_with_context(frames()),
+            mimetype="multipart/x-mixed-replace; boundary=frame",
+            headers={"Cache-Control": "no-store, max-age=0", "X-Accel-Buffering": "no"},
+        )
+
+    def control_bridge() -> TeleopControlBridge | None:
+        return getattr(provider, "controls", None)
+
+    def control_json() -> dict[str, Any]:
+        if not request.is_json or request.headers.get("X-LeKiwi-Control") != "dashboard-v1":
+            raise ValueError("Dashboard control requests require same-origin JSON")
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict):
+            raise ValueError("Invalid control request")
+        return payload
+
+    def control_result(callback: Callable[[TeleopControlBridge, dict[str, Any]], None]):
+        bridge = control_bridge()
+        if bridge is None:
+            return jsonify({"ok": False, "error": "Start teleoperation to enable dashboard controls."}), 409
+        try:
+            payload = control_json()
+            # Refresh permission from cached telemetry before accepting intent.
+            provider.snapshot()
+            callback(bridge, payload)
+            return jsonify({"ok": True, "state": provider.snapshot()})
+        except (RuntimeError, ValueError) as exc:
+            return jsonify({"ok": False, "error": str(exc), "state": provider.snapshot()}), 409
+
+    @app.post("/api/control/enable")
+    def api_control_enable():
+        return control_result(lambda bridge, payload: bridge.set_enabled(bool(payload.get("enabled"))))
+
+    @app.post("/api/control/speed")
+    def api_control_speed():
+        return control_result(lambda bridge, payload: bridge.set_speed(int(payload.get("speed", -1))))
+
+    @app.post("/api/control/base")
+    def api_control_base():
+        return control_result(
+            lambda bridge, payload: bridge.pulse_base(
+                str(payload.get("key", "")), bool(payload.get("active"))
+            )
+        )
+
+    @app.post("/api/control/arm")
+    def api_control_arm():
+        return control_result(lambda bridge, payload: bridge.set_arm_takeover(bool(payload.get("enabled"))))
+
+    @app.post("/api/control/joint")
+    def api_control_joint():
+        return control_result(
+            lambda bridge, payload: bridge.pulse_joint(
+                str(payload.get("joint", "")),
+                float(payload.get("direction", 0)),
+                bool(payload.get("active")),
+            )
+        )
+
+    @app.post("/api/control/stop")
+    def api_control_stop():
+        return control_result(lambda bridge, _payload: bridge.stop())
+
     @app.get("/api/ports")
     def api_ports():
         state = provider.snapshot()
-        return jsonify({"ports": [], "selected": state.get("serial_port"), "remembered": state.get("serial_port"), "bus_owned_by": "teleoperation"})
+        return jsonify(
+            {
+                "ports": [],
+                "selected": state.get("serial_port"),
+                "remembered": state.get("serial_port"),
+                "bus_owned_by": "teleoperation",
+            }
+        )
 
     @app.post("/api/connect")
     @app.post("/api/autodetect")
     @app.post("/api/disconnect")
     def api_bus_owned():
-        return jsonify({"ok": False, "error": "Motor bus is owned by teleoperation; this dashboard uses its embedded feed.", "state": provider.snapshot()}), 409
+        return jsonify(
+            {
+                "ok": False,
+                "error": "Motor bus is owned by teleoperation; this dashboard uses its embedded feed.",
+                "state": provider.snapshot(),
+            }
+        ), 409
 
     @app.post("/api/follower")
     def api_follower():
-        return jsonify({"ok": True, "state": provider.snapshot(), "detail": "Follower telemetry is embedded in the ZMQ observation stream."})
+        return jsonify(
+            {
+                "ok": True,
+                "state": provider.snapshot(),
+                "detail": "Follower telemetry is embedded in the ZMQ observation stream.",
+            }
+        )
 
     return app
 
@@ -648,7 +1099,9 @@ class CachedDiagnosticsServer:
         if self._server is not None:
             return
         self._server = make_server(self.host, self.port, self.app, threaded=True)
-        self._thread = threading.Thread(target=self._server.serve_forever, name=f"lekiwi-diagnostics-{self.port}", daemon=True)
+        self._thread = threading.Thread(
+            target=self._server.serve_forever, name=f"lekiwi-diagnostics-{self.port}", daemon=True
+        )
         self._thread.start()
 
     def stop(self) -> None:

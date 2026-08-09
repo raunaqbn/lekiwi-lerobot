@@ -28,7 +28,12 @@ from lerobot.utils.errors import DeviceNotConnectedError
 
 from ..robot import Robot
 from .config_lekiwi import LeKiwiClientConfig
-from .live_diagnostics import PROTOCOL_VERSION, MutableSnapshotCache, ProtocolCompatibilityError
+from .live_diagnostics import (
+    PROTOCOL_VERSION,
+    MutableCameraFrameCache,
+    MutableSnapshotCache,
+    ProtocolCompatibilityError,
+)
 
 
 class LeKiwiClient(Robot):
@@ -68,6 +73,7 @@ class LeKiwiClient(Robot):
 
         self.last_remote_state = {}
         self.diagnostics_cache = MutableSnapshotCache("follower")
+        self.camera_cache = MutableCameraFrameCache(tuple(self.config.cameras))
         self._pending_frames: list[bytes] | None = None
 
         # Define three speed levels and a current index
@@ -216,6 +222,7 @@ class LeKiwiClient(Robot):
             cam_names = header.pop("_cams")
             observation: RobotObservation = header
             for cam_name, jpeg in zip(cam_names, frames[1:], strict=True):
+                self.camera_cache.publish(cam_name, jpeg)
                 observation[cam_name] = jpeg
             return observation
         except ProtocolCompatibilityError:
