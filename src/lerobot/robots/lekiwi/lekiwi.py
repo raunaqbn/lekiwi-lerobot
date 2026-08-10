@@ -84,6 +84,7 @@ class LeKiwi(Robot):
         self.last_arm_position: dict[str, float] = {}
         self.last_base_wheel_velocity: dict[str, float] = {}
         self.last_body_velocity: dict[str, float] = {}
+        self.last_performance_ns: dict[str, int] = {}
 
     @property
     def _state_ft(self) -> dict[str, type]:
@@ -351,7 +352,7 @@ class LeKiwi(Robot):
     @check_if_not_connected
     def get_observation(self) -> RobotObservation:
         # Read actuators position for arm and vel for base
-        start = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         arm_pos = self.bus.sync_read(
             "Present_Position", self.arm_motors, num_retry=self.config.num_read_retries
         )
@@ -373,14 +374,18 @@ class LeKiwi(Robot):
 
         obs_dict = {**arm_state, **base_vel}
 
-        dt_ms = (time.perf_counter() - start) * 1e3
+        motor_read_ns = time.perf_counter_ns() - start_ns
+        self.last_performance_ns = {"follower_motor_read": motor_read_ns}
+        dt_ms = motor_read_ns / 1e6
         logger.debug(f"{self} read state: {dt_ms:.1f}ms")
 
         # Capture images from cameras
         for cam_key, cam in self.cameras.items():
-            start = time.perf_counter()
+            start_ns = time.perf_counter_ns()
             obs_dict[cam_key] = cam.read_latest()
-            dt_ms = (time.perf_counter() - start) * 1e3
+            camera_read_ns = time.perf_counter_ns() - start_ns
+            self.last_performance_ns[f"camera_capture.{cam_key}"] = camera_read_ns
+            dt_ms = camera_read_ns / 1e6
             logger.debug(f"{self} read {cam_key}: {dt_ms:.1f}ms")
 
         return obs_dict

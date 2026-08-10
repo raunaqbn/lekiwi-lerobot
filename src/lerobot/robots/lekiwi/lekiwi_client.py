@@ -16,6 +16,8 @@
 
 import json
 import logging
+import time
+from collections import OrderedDict
 from functools import cached_property
 
 import cv2
@@ -28,6 +30,7 @@ from lerobot.utils.errors import DeviceNotConnectedError
 
 from ..robot import Robot
 from .config_lekiwi import LeKiwiClientConfig
+from .latency_tracing import LatencyTraceRecorder, TraceContext, trace_context_from_wire
 from .live_diagnostics import (
     PROTOCOL_VERSION,
     MutableCameraFrameCache,
@@ -75,6 +78,14 @@ class LeKiwiClient(Robot):
         self.diagnostics_cache = MutableSnapshotCache("follower")
         self.camera_cache = MutableCameraFrameCache(tuple(self.config.cameras))
         self._pending_frames: list[bytes] | None = None
+        self.latency = LatencyTraceRecorder(
+            config.latency_trace_dir,
+            role="client",
+            session_id=config.latency_session_id,
+        )
+        self._latency_sequence = 0
+        self._latency_outstanding: OrderedDict[str, tuple[int, TraceContext]] = OrderedDict()
+        self._latest_trace_context: TraceContext | None = None
 
         # Define three speed levels and a current index
         self.speed_levels = [
@@ -207,7 +218,9 @@ class LeKiwiClient(Robot):
                 "Start the matching v0.6.1 Mac client and Pi host together."
             )
 
-    def _parse_observation(self, frames: list[bytes]) -> RobotObservation | None:
+    def _parse_observation(
+        self, frames: list[bytes], *, received_monotonic_ns: int | None = None
+    ) -> RobotObservation | None:
         """Parses a multipart observation: JSON header + one raw JPEG frame per camera."""
         try:
             header = json.loads(frames[0])
@@ -220,6 +233,40 @@ class LeKiwiClient(Robot):
             if isinstance(diagnostics, dict):
                 self.diagnostics_cache.publish(diagnostics)
             cam_names = header.pop("_cams")
+            trace_wire = header.pop("_trace", None)
+            trace_context = trace_context_from_wire(trace_wire)
+            if trace_context is not None:
+                self._latest_trace_context = trace_context
+                outstanding = self._latency_outstanding.pop(trace_context.trace_id, None)
+                if outstanding is not None:
+                    sent_ns, original_context = outstanding
+                    received_ns = received_monotonic_ns or time.perf_counter_ns()
+                    attributes: dict[str, object] = {}
+                    if isinstance(trace_wire, dict):
+                        host_pipeline_ns = trace_wire.get("host_pipeline_ns")
+                        if isinstance(host_pipeline_ns, int):
+                            residual_ns = max(0, received_ns - sent_ns - host_pipeline_ns)
+                            attributes["host_pipeline_ms"] = host_pipeline_ns / 1_000_000.0
+                            attributes["network_queue_residual_ms"] = residual_ns / 1_000_000.0
+                            self.latency.record_duration(
+                                "remote_host_pipeline", host_pipeline_ns, original_context
+                            )
+                            self.latency.record_duration(
+                                "network_queue_residual",
+                                residual_ns,
+                                original_context,
+                                attributes={
+                                    "scope": "round_trip_residual",
+                                    "includes": "host_response_send+uplink+downlink+socket_queueing",
+                                },
+                            )
+                    self.latency.record_span(
+                        "command_to_observation_rtt",
+                        sent_ns,
+                        received_ns,
+                        original_context,
+                        attributes=attributes,
+                    )
             observation: RobotObservation = header
             for cam_name, jpeg in zip(cam_names, frames[1:], strict=True):
                 self.camera_cache.publish(cam_name, jpeg)
@@ -272,25 +319,49 @@ class LeKiwiClient(Robot):
         """
 
         # 1. Get the latest message's frames from the socket
+        poll_start_ns = time.perf_counter_ns()
         latest_frames = self._poll_and_get_latest_message()
+        received_ns = time.perf_counter_ns()
+        self.latency.record_span(
+            "observation_wait",
+            poll_start_ns,
+            received_ns,
+            self._latest_trace_context,
+            attributes={"message_available": latest_frames is not None},
+        )
 
         # 2. If no message, return cached data
         if latest_frames is None:
             return self.last_frames, self.last_remote_state
 
         # 3. Parse the multipart message
-        observation = self._parse_observation(latest_frames)
+        parse_start_ns = time.perf_counter_ns()
+        observation = self._parse_observation(latest_frames, received_monotonic_ns=received_ns)
+        self.latency.record_span(
+            "observation_parse",
+            parse_start_ns,
+            time.perf_counter_ns(),
+            self._latest_trace_context,
+        )
 
         # 4. If JSON parsing failed, return cached data
         if observation is None:
             return self.last_frames, self.last_remote_state
 
         # 5. Process the valid observation data
+        decode_start_ns = time.perf_counter_ns()
         try:
             new_frames, new_state = self._remote_state_from_obs(observation)
         except Exception as e:
             logging.error(f"Error processing observation data, serving last observation: {e}")
             return self.last_frames, self.last_remote_state
+        self.latency.record_span(
+            "camera_decode",
+            decode_start_ns,
+            time.perf_counter_ns(),
+            self._latest_trace_context,
+            attributes={"camera_count": len(new_frames)},
+        )
 
         self.last_frames = new_frames
         self.last_remote_state = new_state
@@ -372,8 +443,21 @@ class LeKiwiClient(Robot):
         # scalars; json.dumps only serializes Python primitives, so coerce each value to a
         # plain float before sending.
         action = {key: float(value) for key, value in action.items()}
-        envelope = {"_protocol": PROTOCOL_VERSION, "_kind": "action", "action": action}
+        self._latency_sequence += 1
+        trace_context = self.latency.context(self._latency_sequence)
+        send_start_ns = time.perf_counter_ns()
+        envelope = {
+            "_protocol": PROTOCOL_VERSION,
+            "_kind": "action",
+            "_trace": trace_context.wire(client_send_wall_ns=time.time_ns()),
+            "action": action,
+        }
         self.zmq_cmd_socket.send_string(json.dumps(envelope))
+        send_end_ns = time.perf_counter_ns()
+        self.latency.record_span("action_serialize_send", send_start_ns, send_end_ns, trace_context)
+        self._latency_outstanding[trace_context.trace_id] = (send_start_ns, trace_context)
+        while len(self._latency_outstanding) > 256:
+            self._latency_outstanding.popitem(last=False)
 
         # TODO(Steven): Remove the np conversion when it is possible to record a non-numpy array value
         actions = np.array([action.get(k, 0.0) for k in self._state_order], dtype=np.float32)
@@ -389,4 +473,5 @@ class LeKiwiClient(Robot):
         self.zmq_observation_socket.close()
         self.zmq_cmd_socket.close()
         self.zmq_context.term()
+        self.latency.close()
         self._is_connected = False

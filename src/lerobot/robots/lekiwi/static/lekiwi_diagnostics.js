@@ -297,6 +297,21 @@ async function saveFollower() {
 }
 
 async function sendControl(path, payload, { renderState = true } = {}) {
+  const traceId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+  const started = performance.now();
+  let previousControl = null;
+  try {
+    previousControl = JSON.parse(sessionStorage.getItem("lekiwi-last-control-measurement"));
+  } catch (_error) {
+    previousControl = null;
+  }
+  const trace = {
+    trace_id: traceId.replaceAll("-", ""),
+    session_id: `browser-${Math.floor(performance.timeOrigin)}`,
+    sequence: Math.floor(started * 1000),
+    browser_send_wall_ns: Math.floor((performance.timeOrigin + started) * 1e6),
+    previous_control: previousControl,
+  };
   try {
     const response = await fetch(path, {
       method: "POST",
@@ -304,11 +319,20 @@ async function sendControl(path, payload, { renderState = true } = {}) {
         "Content-Type": "application/json",
         "X-LeKiwi-Control": "dashboard-v1",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, _trace: trace }),
     });
     const result = await response.json();
     if (renderState && result.state) render(result.state);
     if (!response.ok) throw new Error(result.error || `Control request failed (HTTP ${response.status})`);
+    const elapsedMs = performance.now() - started;
+    // Send the measured browser HTTP round trip with the next control sample.
+    // This remains in the session trace; it is never written to a live database.
+    sessionStorage.setItem("lekiwi-last-control-measurement", JSON.stringify({
+      trace_id: trace.trace_id,
+      session_id: trace.session_id,
+      sequence: trace.sequence,
+      rtt_ms: Number(elapsedMs.toFixed(3)),
+    }));
     return result;
   } catch (error) {
     showError(error.message);

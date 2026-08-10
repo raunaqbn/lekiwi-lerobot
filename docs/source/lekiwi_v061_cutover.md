@@ -96,3 +96,61 @@ export HF_LEROBOT_HOME=/home/raunaqnaidu/.cache/huggingface/lerobot-v061
 
 If a bus lease is held by teleoperation, standalone diagnostics must not open
 the device. Use the embedded feed or stop teleoperation first.
+
+## Post-session latency traces
+
+Latency tracing is opt-in and does not write to a live database. The motor and
+camera owner loops put compact span records into bounded in-memory queues. A
+background thread flushes JSONL batches to local storage; if the queue fills,
+records are dropped rather than delaying control.
+
+Start the Pi host with a local trace directory:
+
+```bash
+/home/raunaqnaidu/miniconda3/envs/lerobot061/bin/python \
+  -m lerobot.robots.lekiwi.lekiwi_host \
+  --robot.id=anton \
+  --host.latency_trace_dir=/home/raunaqnaidu/lekiwi-latency
+```
+
+Start the Mac teleoperator with its own local trace directory:
+
+```bash
+/Users/raunaqnaidu/miniconda3/envs/lerobot061/bin/python \
+  examples/lekiwi/teleoperate.py \
+  --latency-trace-dir /Users/raunaqnaidu/lekiwi-latency
+```
+
+After the run, copy the Pi JSONL file into the Mac directory and analyze both
+files together:
+
+```bash
+/Users/raunaqnaidu/miniconda3/envs/lerobot061/bin/python \
+  -m lerobot.robots.lekiwi.latency_report \
+  /Users/raunaqnaidu/lekiwi-latency
+```
+
+The report ranks stages by p95 latency and includes p50, p99, maximum, sample
+count, dropped records, and cross-node trace coverage. It separates follower
+motor reads/writes, each camera capture and JPEG encode, diagnostics sampling,
+network/queue residual, camera decode, leader reads, and Rerun logging.
+
+To create a queryable database only after the session has ended:
+
+```bash
+/Users/raunaqnaidu/miniconda3/envs/lerobot061/bin/python \
+  -m lerobot.robots.lekiwi.latency_report \
+  /Users/raunaqnaidu/lekiwi-latency \
+  --sqlite /Users/raunaqnaidu/lekiwi-latency/latency.sqlite
+```
+
+The SQLite export is intentionally a post-processing step. A future hosted
+Postgres or ClickHouse exporter should read these completed JSONL files rather
+than run inside either real-time control process.
+
+`command_to_observation_rtt` is measured exactly on one monotonic Mac clock.
+`network_queue_residual_ms` subtracts the host's monotonic processing duration
+from that round trip. The residual still combines response serialization,
+socket queues, internet uplink, and internet downlink. Individual one-way
+values are not claimed until a clock-offset probe or synchronized clocks can
+attach an uncertainty bound to those estimates.

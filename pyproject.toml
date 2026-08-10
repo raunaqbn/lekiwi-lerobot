@@ -358,6 +358,7 @@ lerobot-setup-can="lerobot.scripts.lerobot_setup_can:main"
 lerobot-annotate="lerobot.scripts.lerobot_annotate:main"
 lerobot-rollout="lerobot.scripts.lerobot_rollout:main"
 lerobot-lekiwi-diagnostics="lerobot.robots.lekiwi.diagnostics:main"
+lerobot-lekiwi-latency-report="lerobot.robots.lekiwi.latency_report:main"
 
 # ---------------- Tool Configurations ----------------
 

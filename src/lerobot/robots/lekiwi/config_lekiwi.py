@@ -85,6 +85,10 @@ class LeKiwiHostConfig:
     diagnostics_host: str = "0.0.0.0"
     diagnostics_port: int = 8091
 
+    # Optional session traces are batched to local JSONL by a background
+    # writer. No database or network write occurs in the control loop.
+    latency_trace_dir: str | None = None
+
 
 @RobotConfig.register_subclass("lekiwi_client")
 @dataclass
@@ -115,3 +119,5 @@ class LeKiwiClientConfig(RobotConfig):
 
     polling_timeout_ms: int = 15
     connect_timeout_s: int = 5
+    latency_trace_dir: str | None = None
+    latency_session_id: str | None = None

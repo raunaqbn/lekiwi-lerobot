@@ -81,12 +81,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dashboard-port", type=int, default=8090)
     parser.add_argument("--no-rerun", action="store_true")
     parser.add_argument("--no-pynput", action="store_true", help="Use only focused-Terminal key pulses")
+    parser.add_argument(
+        "--latency-trace-dir",
+        help="Batch session traces to local JSONL here; no live database writes",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    robot = LeKiwiClient(LeKiwiClientConfig(remote_ip=args.pi, id=args.robot_id))
+    robot = LeKiwiClient(
+        LeKiwiClientConfig(
+            remote_ip=args.pi,
+            id=args.robot_id,
+            latency_trace_dir=args.latency_trace_dir,
+        )
+    )
     leader_arm = SO101Leader(
         SO101LeaderConfig(port=args.leader_port, id=args.robot_id, use_degrees=True, num_read_retries=2)
     )
@@ -118,6 +128,7 @@ def main() -> None:
             robot.diagnostics_cache,
             cameras=robot.camera_cache,
             controls=dashboard_controls,
+            latency=robot.latency,
         )
         diagnostics_server = CachedDiagnosticsServer(aggregate, args.dashboard_host, args.dashboard_port)
         diagnostics_server.start()
@@ -142,10 +153,25 @@ def main() -> None:
         )
 
         while True:
+            started_ns = time.perf_counter_ns()
             started = time.perf_counter()
+            observation_start_ns = time.perf_counter_ns()
             observation = robot.get_observation()
+            robot.latency.record_span(
+                "observation_api",
+                observation_start_ns,
+                time.perf_counter_ns(),
+                robot._latest_trace_context,
+            )
 
+            leader_start_ns = time.perf_counter_ns()
             leader_action = leader_arm.get_action()
+            robot.latency.record_span(
+                "leader_motor_read",
+                leader_start_ns,
+                time.perf_counter_ns(),
+                robot._latest_trace_context,
+            )
             leader_positions = {
                 key.removesuffix(".pos"): float(value)
                 for key, value in leader_action.items()
@@ -167,8 +193,21 @@ def main() -> None:
             action = {**arm_action, **base_action}
 
             if not args.no_rerun:
+                rerun_start_ns = time.perf_counter_ns()
                 log_rerun_data(observation, action)
+                robot.latency.record_span(
+                    "rerun_log",
+                    rerun_start_ns,
+                    time.perf_counter_ns(),
+                    robot._latest_trace_context,
+                )
             robot.send_action(action)
+            robot.latency.record_span(
+                "teleop_loop",
+                started_ns,
+                time.perf_counter_ns(),
+                robot._latest_trace_context,
+            )
             time.sleep(max(1.0 / FPS - (time.perf_counter() - started), 0.0))
     except KeyboardInterrupt:
         print("\nStopping teleoperation cleanly…", flush=True)

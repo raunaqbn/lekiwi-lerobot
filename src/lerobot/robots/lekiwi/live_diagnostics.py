@@ -37,6 +37,7 @@ from .diagnostics import (
     infer_power_state,
     model_name,
 )
+from .latency_tracing import LatencyTraceRecorder, TraceContext, trace_context_from_wire
 
 SCHEMA_VERSION = "2.0"
 PROTOCOL_VERSION = "lekiwi-v061-live-telemetry-v1"
@@ -642,6 +643,20 @@ class TeleopControlBridge:
         self._last_apply_at: float | None = None
         self._last_command_at: str | None = None
         self._revision = 0
+        self._pending_trace: TraceContext | None = None
+
+    def note_trace(self, value: Any) -> None:
+        """Attach a browser/client trace to the next owner-loop application."""
+        context = trace_context_from_wire(value)
+        if context is not None:
+            with self._lock:
+                self._pending_trace = context
+
+    def take_trace_context(self) -> TraceContext | None:
+        with self._lock:
+            context = self._pending_trace
+            self._pending_trace = None
+            return context
 
     def set_permitted(self, permitted: bool, reason: str) -> None:
         with self._lock:
@@ -901,11 +916,13 @@ class AggregateSnapshotProvider:
         follower: SnapshotProvider,
         cameras: MutableCameraFrameCache | None = None,
         controls: TeleopControlBridge | None = None,
+        latency: LatencyTraceRecorder | None = None,
     ):
         self.leader = leader
         self.follower = follower
         self.cameras = cameras
         self.controls = controls
+        self.latency = latency
 
     @staticmethod
     def _control_permission(combined: dict[str, Any]) -> tuple[bool, str]:
@@ -962,10 +979,12 @@ class FollowerHostSnapshotProvider:
         follower: SnapshotProvider,
         cameras: MutableCameraFrameCache,
         controls: TeleopControlBridge,
+        latency: LatencyTraceRecorder | None = None,
     ):
         self.follower = follower
         self.cameras = cameras
         self.controls = controls
+        self.latency = latency
 
     @staticmethod
     def _control_permission(follower: dict[str, Any]) -> tuple[bool, str]:
@@ -1083,11 +1102,48 @@ def create_cached_app(provider: SnapshotProvider) -> Flask:
         if bridge is None:
             return jsonify({"ok": False, "error": "Start teleoperation to enable dashboard controls."}), 409
         try:
+            started_ns = time.perf_counter_ns()
             payload = control_json()
+            trace_wire = payload.pop("_trace", None)
+            trace_context = trace_context_from_wire(trace_wire)
+            if trace_context is not None:
+                bridge.note_trace(trace_context.wire())
+            latency = getattr(provider, "latency", None)
+            if latency is not None:
+                previous_browser = (
+                    trace_wire.get("previous_control") if isinstance(trace_wire, dict) else None
+                )
+                previous_context = trace_context_from_wire(previous_browser)
+                previous_rtt_ms = (
+                    previous_browser.get("rtt_ms") if isinstance(previous_browser, dict) else None
+                )
+                if previous_context is not None and isinstance(previous_rtt_ms, (int, float)):
+                    latency.record_duration(
+                        "browser_control_rtt",
+                        int(max(0.0, float(previous_rtt_ms)) * 1_000_000),
+                        previous_context,
+                        attributes={"measurement_clock": "browser.performance"},
+                    )
+                latency.mark(
+                    "dashboard_control_received",
+                    trace_context,
+                    attributes={
+                        "path": request.path,
+                    },
+                )
             # Refresh permission from cached telemetry before accepting intent.
             provider.snapshot()
             callback(bridge, payload)
-            return jsonify({"ok": True, "state": provider.snapshot()})
+            response = jsonify({"ok": True, "state": provider.snapshot()})
+            if latency is not None:
+                latency.record_span(
+                    "dashboard_control_http",
+                    started_ns,
+                    time.perf_counter_ns(),
+                    trace_context,
+                    attributes={"path": request.path, "accepted": True},
+                )
+            return response
         except (RuntimeError, ValueError) as exc:
             return jsonify({"ok": False, "error": str(exc), "state": provider.snapshot()}), 409
 
