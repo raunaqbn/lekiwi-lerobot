@@ -1,7 +1,7 @@
-import * as THREE from '../three/three.module.min.js';
-import { STLLoader } from '../three/examples/jsm/loaders/STLLoader.js';
-import { ColladaLoader } from '../three/examples/jsm/loaders/ColladaLoader.js';
-import { URDFRobot, URDFJoint, URDFLink, URDFCollider, URDFVisual, URDFMimicJoint } from './URDFClasses.js';
+import * as THREE from '../three/three.module.min.js?v=20260810a';
+import { STLLoader } from '../three/examples/jsm/loaders/STLLoader.js?v=20260810a';
+import { ColladaLoader } from '../three/examples/jsm/loaders/ColladaLoader.js?v=20260810a';
+import { URDFRobot, URDFJoint, URDFLink, URDFCollider, URDFVisual, URDFMimicJoint } from './URDFClasses.js?v=20260810a';
 
 /*
 Reference coordinate frames for THREE.js and ROS.

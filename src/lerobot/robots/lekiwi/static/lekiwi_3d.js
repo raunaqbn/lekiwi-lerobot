@@ -1,6 +1,6 @@
-import * as THREE from "./vendor/three/three.module.min.js";
-import { OrbitControls } from "./vendor/three/examples/jsm/controls/OrbitControls.js";
-import URDFLoader from "./vendor/urdf-loader/URDFLoader.js";
+import * as THREE from "./vendor/three/three.module.min.js?v=20260810a";
+import { OrbitControls } from "./vendor/three/examples/jsm/controls/OrbitControls.js?v=20260810a";
+import URDFLoader from "./vendor/urdf-loader/URDFLoader.js?v=20260810a";
 
 const MOTOR_IDS = {
   arm_shoulder_pan: 1,
@@ -257,6 +257,16 @@ function init() {
     scene.add(grid);
 
     const manager = new THREE.LoadingManager();
+    manager.onProgress = (_url, loaded, total) => {
+      const progress = loading?.querySelector("span");
+      if (progress) progress.textContent = `Loading CAD parts ${loaded} of ${total}…`;
+    };
+    manager.onError = (url) => {
+      const title = loading?.querySelector("strong");
+      const detail = loading?.querySelector("span");
+      if (title) title.textContent = "3D model unavailable";
+      if (detail) detail.textContent = `Could not load ${url.split("/").pop()}. Refresh once the CAD assets are available.`;
+    };
     manager.onLoad = () => {
       if (!robot) return;
       frameRobot();
@@ -266,7 +276,7 @@ function init() {
     };
     const loader = new URDFLoader(manager);
     loader.load(
-      "/static/models/lekiwi/LeKiwi.urdf",
+      "/static/models/lekiwi/LeKiwi.urdf?v=20260810a",
       (loadedRobot) => {
         robot = loadedRobot;
         scene.add(robot);

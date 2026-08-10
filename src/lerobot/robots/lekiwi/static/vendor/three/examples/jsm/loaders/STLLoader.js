@@ -7,7 +7,7 @@ import {
 	Loader,
 	Vector3,
 	SRGBColorSpace
-} from '../../../three.module.min.js';
+} from '../../../three.module.min.js?v=20260810a';
 
 /**
  * A loader for the STL format, as created by Solidworks and other CAD programs.

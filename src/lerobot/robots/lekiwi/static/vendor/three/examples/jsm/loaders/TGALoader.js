@@ -1,7 +1,7 @@
 import {
 	DataTextureLoader,
 	LinearMipmapLinearFilter
-} from '../../../three.module.min.js';
+} from '../../../three.module.min.js?v=20260810a';
 
 /**
  * A loader for the TGA texture format.
