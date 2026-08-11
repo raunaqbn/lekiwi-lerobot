@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- App Store icons must be opaque squares; iOS applies the platform mask. -->
+  <rect width="1024" height="1024" fill="#172033"/>
+  <path d="M183 746h658" fill="none" stroke="#5B5CE2" stroke-width="68" stroke-linecap="round"/>
+  <circle cx="278" cy="746" r="62" fill="#F4F6FA"/>
+  <circle cx="746" cy="746" r="62" fill="#F4F6FA"/>
+  <path d="M407 707V563l131-96 117 74" fill="none" stroke="#F4F6FA" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M538 467V319l103-69" fill="none" stroke="#F4F6FA" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="407" cy="563" r="43" fill="#43AD83"/>
+  <circle cx="538" cy="467" r="43" fill="#43AD83"/>
+  <circle cx="641" cy="250" r="43" fill="#43AD83"/>
+  <path d="M676 218l90-56M681 279l96 33" fill="none" stroke="#F4F6FA" stroke-width="34" stroke-linecap="round"/>
+</svg>

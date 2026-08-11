@@ -1,0 +1,5 @@
+.artifacts/
+.derived*/
+.impeccable/
+xcuserdata/
+*.xcuserstate

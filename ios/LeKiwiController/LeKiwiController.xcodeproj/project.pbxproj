@@ -1,0 +1,567 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		087E808420FA377716C90022 /* JoystickMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B06B4FB7EB6BF888EB4E01 /* JoystickMappingTests.swift */; };
+		117E2356E94C2C5C3F7B1C32 /* CloudflareAccessSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16E0B607EC19F2C8759424B /* CloudflareAccessSession.swift */; };
+		11A311FAADBEDEE59FABB1D7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56CF83C38E03EBFE851E382F /* LaunchScreen.storyboard */; };
+		261A52925E4530E0A10AF910 /* Twin in Resources */ = {isa = PBXBuildFile; fileRef = FB6CB17B60F60F6A4E59B192 /* Twin */; };
+		2F399A319466C01C15243824 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5377205E47F01546B8FA5A3 /* RootView.swift */; };
+		42D8C2CAF860DAA2298663EC /* HealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 472B728704DE6D8EB575331E /* HealthView.swift */; };
+		68806C878660093B121FE2D1 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B97B2E795BA341A2764383 /* LoginView.swift */; };
+		6C519DEB022D5CF2B9129D36 /* lekiwi_3d.bundle.js in Resources */ = {isa = PBXBuildFile; fileRef = 19B94272CC376FD427297FE6 /* lekiwi_3d.bundle.js */; };
+		6FD701CFD579C93FB48383C3 /* MJPEGStreamClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08B9A362B55915E7F1CF5650 /* MJPEGStreamClient.swift */; };
+		71FFC82D3DF434BBD21BB222 /* RobotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F412FE493F4A72BB1FD3110 /* RobotStore.swift */; };
+		8AC7B09A327D2C3607E3FDB0 /* OperateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95DEF80B55EDD2FB182ED05B /* OperateView.swift */; };
+		8D328B0A6F94B4E81596E595 /* models in Resources */ = {isa = PBXBuildFile; fileRef = 94C8E68E85A869A6811F9EA3 /* models */; };
+		93F54EEC162044AD98E2FDC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F9EEE155245966D65E6C3DBC /* Assets.xcassets */; };
+		A0213D460703A02AEE25D34B /* LeKiwiControllerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C27FBC557BF3345CC7F9CC /* LeKiwiControllerApp.swift */; };
+		B137C33E9101B980B9BF252F /* RobotModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47FBEEFE6D3ADB8E939FDF87 /* RobotModels.swift */; };
+		B4B3F59BE478E9B7473F23BB /* TwinTelemetryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0879BE47EA2792E6A62FFFC /* TwinTelemetryView.swift */; };
+		D182FF926E1B8620B1F28F1E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E3EBBB3FDC9B701201280A /* SettingsView.swift */; };
+		E1A0D7B9FA03C56CDDFC470C /* ControlDeck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5135ED88CB000C1DA267A78A /* ControlDeck.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		16422325D830A40AF5C4ABBF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE98FF7CA16D24BDFE970C05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2D256620E3D77B71853DCB84;
+			remoteInfo = LeKiwiController;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		08B9A362B55915E7F1CF5650 /* MJPEGStreamClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MJPEGStreamClient.swift; sourceTree = "<group>"; };
+		19B94272CC376FD427297FE6 /* lekiwi_3d.bundle.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = lekiwi_3d.bundle.js; sourceTree = "<group>"; };
+		472B728704DE6D8EB575331E /* HealthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthView.swift; sourceTree = "<group>"; };
+		47FBEEFE6D3ADB8E939FDF87 /* RobotModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobotModels.swift; sourceTree = "<group>"; };
+		5135ED88CB000C1DA267A78A /* ControlDeck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlDeck.swift; sourceTree = "<group>"; };
+		56CF83C38E03EBFE851E382F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		8E4C47ED58B733357E332439 /* LeKiwiController.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LeKiwiController.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		94C8E68E85A869A6811F9EA3 /* models */ = {isa = PBXFileReference; lastKnownFileType = folder; name = models; path = ../../src/lerobot/robots/lekiwi/static/models; sourceTree = SOURCE_ROOT; };
+		95B97B2E795BA341A2764383 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		95DEF80B55EDD2FB182ED05B /* OperateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperateView.swift; sourceTree = "<group>"; };
+		9F412FE493F4A72BB1FD3110 /* RobotStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobotStore.swift; sourceTree = "<group>"; };
+		A16E0B607EC19F2C8759424B /* CloudflareAccessSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflareAccessSession.swift; sourceTree = "<group>"; };
+		A1C27FBC557BF3345CC7F9CC /* LeKiwiControllerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeKiwiControllerApp.swift; sourceTree = "<group>"; };
+		CE642D5AEA7AFF800BB410C1 /* LeKiwiControllerTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LeKiwiControllerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2B06B4FB7EB6BF888EB4E01 /* JoystickMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoystickMappingTests.swift; sourceTree = "<group>"; };
+		DBF43F9AB2CFDF4A02979563 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F0879BE47EA2792E6A62FFFC /* TwinTelemetryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwinTelemetryView.swift; sourceTree = "<group>"; };
+		F0E3EBBB3FDC9B701201280A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		F5377205E47F01546B8FA5A3 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		F9EEE155245966D65E6C3DBC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FB6CB17B60F60F6A4E59B192 /* Twin */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Twin; path = LeKiwiController/Resources/Twin; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		014DE95CA6866825B7B29E88 /* robots */ = {
+			isa = PBXGroup;
+			children = (
+				D607143ADFD95892AFBEA23C /* lekiwi */,
+			);
+			path = robots;
+			sourceTree = "<group>";
+		};
+		03B319637A9394116D3577FF /* LeKiwiControllerTests */ = {
+			isa = PBXGroup;
+			children = (
+				D2B06B4FB7EB6BF888EB4E01 /* JoystickMappingTests.swift */,
+			);
+			path = LeKiwiControllerTests;
+			sourceTree = "<group>";
+		};
+		14F28ECE382C65619FD0DE0E /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				A16E0B607EC19F2C8759424B /* CloudflareAccessSession.swift */,
+				08B9A362B55915E7F1CF5650 /* MJPEGStreamClient.swift */,
+				9F412FE493F4A72BB1FD3110 /* RobotStore.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		2F1376E6E36D36625653BA5E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8E4C47ED58B733357E332439 /* LeKiwiController.app */,
+				CE642D5AEA7AFF800BB410C1 /* LeKiwiControllerTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		328D5AA27D78BC03871E6B05 /* static */ = {
+			isa = PBXGroup;
+			children = (
+				19B94272CC376FD427297FE6 /* lekiwi_3d.bundle.js */,
+				94C8E68E85A869A6811F9EA3 /* models */,
+			);
+			path = static;
+			sourceTree = "<group>";
+		};
+		4A1440632662679EEA5BCB06 = {
+			isa = PBXGroup;
+			children = (
+				DEAEBF4187F9CBA1020B49F0 /* LeKiwiController */,
+				03B319637A9394116D3577FF /* LeKiwiControllerTests */,
+				79479E05DF24CC6F726BC2B6 /* lerobot */,
+				2F1376E6E36D36625653BA5E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6EAEF5BD567E1ECB4F8CFE3C /* lerobot */ = {
+			isa = PBXGroup;
+			children = (
+				014DE95CA6866825B7B29E88 /* robots */,
+			);
+			path = lerobot;
+			sourceTree = "<group>";
+		};
+		79479E05DF24CC6F726BC2B6 /* lerobot */ = {
+			isa = PBXGroup;
+			children = (
+				BB1E4573F051D0A9FBE2349C /* src */,
+			);
+			name = lerobot;
+			path = ../..;
+			sourceTree = "<group>";
+		};
+		91E73C0D270F47A6AF3796DB /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F9EEE155245966D65E6C3DBC /* Assets.xcassets */,
+				56CF83C38E03EBFE851E382F /* LaunchScreen.storyboard */,
+				FB6CB17B60F60F6A4E59B192 /* Twin */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		B59C171296483BE1F8C6A2D3 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				5135ED88CB000C1DA267A78A /* ControlDeck.swift */,
+				472B728704DE6D8EB575331E /* HealthView.swift */,
+				95B97B2E795BA341A2764383 /* LoginView.swift */,
+				95DEF80B55EDD2FB182ED05B /* OperateView.swift */,
+				F5377205E47F01546B8FA5A3 /* RootView.swift */,
+				F0E3EBBB3FDC9B701201280A /* SettingsView.swift */,
+				F0879BE47EA2792E6A62FFFC /* TwinTelemetryView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		BB1E4573F051D0A9FBE2349C /* src */ = {
+			isa = PBXGroup;
+			children = (
+				6EAEF5BD567E1ECB4F8CFE3C /* lerobot */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		BBD161EBD0D641FCF8BD8741 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A1C27FBC557BF3345CC7F9CC /* LeKiwiControllerApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C50C3DF205EB6A6ECAB9A088 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				47FBEEFE6D3ADB8E939FDF87 /* RobotModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		D607143ADFD95892AFBEA23C /* lekiwi */ = {
+			isa = PBXGroup;
+			children = (
+				328D5AA27D78BC03871E6B05 /* static */,
+			);
+			path = lekiwi;
+			sourceTree = "<group>";
+		};
+		DEAEBF4187F9CBA1020B49F0 /* LeKiwiController */ = {
+			isa = PBXGroup;
+			children = (
+				DBF43F9AB2CFDF4A02979563 /* Info.plist */,
+				BBD161EBD0D641FCF8BD8741 /* App */,
+				C50C3DF205EB6A6ECAB9A088 /* Models */,
+				14F28ECE382C65619FD0DE0E /* Networking */,
+				91E73C0D270F47A6AF3796DB /* Resources */,
+				B59C171296483BE1F8C6A2D3 /* Views */,
+			);
+			path = LeKiwiController;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2D256620E3D77B71853DCB84 /* LeKiwiController */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1CFB750C19397C52FAE0E461 /* Build configuration list for PBXNativeTarget "LeKiwiController" */;
+			buildPhases = (
+				CB02DD929038BC6AFBC4EEC8 /* Sources */,
+				B9B5409B7DCB10E818DAF344 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LeKiwiController;
+			packageProductDependencies = (
+			);
+			productName = LeKiwiController;
+			productReference = 8E4C47ED58B733357E332439 /* LeKiwiController.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C55C7A9868FB1EF5AC85A1AB /* LeKiwiControllerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 178566EDA9B34BC1883EB4C2 /* Build configuration list for PBXNativeTarget "LeKiwiControllerTests" */;
+			buildPhases = (
+				60CA30BF8C320E2C748067C4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E838C77E37C7A901281528A8 /* PBXTargetDependency */,
+			);
+			name = LeKiwiControllerTests;
+			packageProductDependencies = (
+			);
+			productName = LeKiwiControllerTests;
+			productReference = CE642D5AEA7AFF800BB410C1 /* LeKiwiControllerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CE98FF7CA16D24BDFE970C05 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					2D256620E3D77B71853DCB84 = {
+						DevelopmentTeam = L6YHMZPSYT;
+						ProvisioningStyle = Automatic;
+					};
+					C55C7A9868FB1EF5AC85A1AB = {
+						DevelopmentTeam = L6YHMZPSYT;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = C68360E2CB62149598818CF9 /* Build configuration list for PBXProject "LeKiwiController" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 4A1440632662679EEA5BCB06;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 2F1376E6E36D36625653BA5E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2D256620E3D77B71853DCB84 /* LeKiwiController */,
+				C55C7A9868FB1EF5AC85A1AB /* LeKiwiControllerTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B9B5409B7DCB10E818DAF344 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				93F54EEC162044AD98E2FDC9 /* Assets.xcassets in Resources */,
+				11A311FAADBEDEE59FABB1D7 /* LaunchScreen.storyboard in Resources */,
+				261A52925E4530E0A10AF910 /* Twin in Resources */,
+				6C519DEB022D5CF2B9129D36 /* lekiwi_3d.bundle.js in Resources */,
+				8D328B0A6F94B4E81596E595 /* models in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		60CA30BF8C320E2C748067C4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				087E808420FA377716C90022 /* JoystickMappingTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CB02DD929038BC6AFBC4EEC8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				117E2356E94C2C5C3F7B1C32 /* CloudflareAccessSession.swift in Sources */,
+				E1A0D7B9FA03C56CDDFC470C /* ControlDeck.swift in Sources */,
+				42D8C2CAF860DAA2298663EC /* HealthView.swift in Sources */,
+				A0213D460703A02AEE25D34B /* LeKiwiControllerApp.swift in Sources */,
+				68806C878660093B121FE2D1 /* LoginView.swift in Sources */,
+				6FD701CFD579C93FB48383C3 /* MJPEGStreamClient.swift in Sources */,
+				8AC7B09A327D2C3607E3FDB0 /* OperateView.swift in Sources */,
+				B137C33E9101B980B9BF252F /* RobotModels.swift in Sources */,
+				71FFC82D3DF434BBD21BB222 /* RobotStore.swift in Sources */,
+				2F399A319466C01C15243824 /* RootView.swift in Sources */,
+				D182FF926E1B8620B1F28F1E /* SettingsView.swift in Sources */,
+				B4B3F59BE478E9B7473F23BB /* TwinTelemetryView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E838C77E37C7A901281528A8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2D256620E3D77B71853DCB84 /* LeKiwiController */;
+			targetProxy = 16422325D830A40AF5C4ABBF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0DC81F3618BF6DDCF526D969 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = L6YHMZPSYT;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		2B69A6EEA59F10ABE388C4E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 6;
+				INFOPLIST_FILE = LeKiwiController/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.raunaqnaidu.lekiwi;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		465BB11620B78EFF2019E883 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = L6YHMZPSYT;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		CAB6874C5CA0EA5FDA61AFC0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.raunaqnaidu.lekiwi.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LeKiwiController.app/LeKiwiController";
+			};
+			name = Release;
+		};
+		D302917114E6E6A3015C80D5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 6;
+				INFOPLIST_FILE = LeKiwiController/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.raunaqnaidu.lekiwi;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E1B70C2171CAC9652D857DD6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.raunaqnaidu.lekiwi.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LeKiwiController.app/LeKiwiController";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		178566EDA9B34BC1883EB4C2 /* Build configuration list for PBXNativeTarget "LeKiwiControllerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E1B70C2171CAC9652D857DD6 /* Debug */,
+				CAB6874C5CA0EA5FDA61AFC0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		1CFB750C19397C52FAE0E461 /* Build configuration list for PBXNativeTarget "LeKiwiController" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B69A6EEA59F10ABE388C4E9 /* Debug */,
+				D302917114E6E6A3015C80D5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C68360E2CB62149598818CF9 /* Build configuration list for PBXProject "LeKiwiController" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				465BB11620B78EFF2019E883 /* Debug */,
+				0DC81F3618BF6DDCF526D969 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CE98FF7CA16D24BDFE970C05 /* Project object */;
+}

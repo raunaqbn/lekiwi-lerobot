@@ -15,7 +15,7 @@ const MOTOR_IDS = {
 };
 
 const SEVERITY_COLORS = {
-  healthy: 0x43ad83,
+  healthy: 0xd8dce4,
   warning: 0xd89532,
   critical: 0xd95463,
   unpowered: 0x71809a,
@@ -64,7 +64,6 @@ let robot;
 let latestFollower;
 let selectedMotorName = "arm_shoulder_pan";
 let animationFrame;
-const hotspots = new Map();
 
 function format(value, suffix = "") {
   return value === null || value === undefined ? "—" : `${value}${suffix}`;
@@ -89,7 +88,6 @@ function updateInspector(name = selectedMotorName) {
     ? `${radians.toFixed(3)} rad · ${format(motor.position_deg, "°")}`
     : "—";
   selectedTorque.textContent = motor.torque_enabled == null ? "—" : motor.torque_enabled ? "Enabled" : "Disabled";
-  hotspots.forEach((button, motorName) => button.classList.toggle("is-selected", motorName === name));
 }
 
 function selectMotor(name) {
@@ -97,37 +95,6 @@ function selectMotor(name) {
   tintRobot();
   canvas.setAttribute("aria-label", `${findMotor(name)?.label || name} selected in the LeKiwi digital twin`);
   window.dispatchEvent(new CustomEvent("lekiwi-motor-select", { detail: { source: "follower", id: MOTOR_IDS[name] } }));
-}
-
-function createHotspots() {
-  Object.entries(MOTOR_IDS).forEach(([name, id]) => {
-    if (!robot.joints[name]) return;
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "twin-hotspot";
-    button.setAttribute("aria-label", `Inspect follower motor ${id}, ${findMotor(name)?.label || name}`);
-    button.title = findMotor(name)?.label || name;
-    button.addEventListener("click", (event) => {
-      event.stopPropagation();
-      selectMotor(name);
-    });
-    stage.append(button);
-    hotspots.set(name, button);
-  });
-}
-
-function updateHotspots() {
-  if (!robot) return;
-  const point = new THREE.Vector3();
-  hotspots.forEach((button, name) => {
-    const joint = robot.joints[name];
-    joint.getWorldPosition(point);
-    point.project(camera);
-    button.style.left = `${(point.x * 0.5 + 0.5) * stage.clientWidth}px`;
-    button.style.top = `${(-point.y * 0.5 + 0.5) * stage.clientHeight}px`;
-    button.hidden = point.z < -1 || point.z > 1;
-    button.dataset.severity = findMotor(name)?.severity || "offline";
-  });
 }
 
 function tagJointMeshes() {
@@ -170,10 +137,6 @@ function applyTelemetry() {
   robot.rotation.z = showEstimatedMotion ? odometry.theta || 0 : 0;
   if (odometryWarning) odometryWarning.hidden = !showEstimatedMotion;
   stage.dataset.stale = latestFollower.stale ? "true" : "false";
-  hotspots.forEach((button, name) => {
-    const motor = findMotor(name);
-    if (motor) button.setAttribute("aria-label", `Inspect follower motor ${motor.id}, ${motor.label}`);
-  });
   updateInspector();
   tintRobot();
 }
@@ -195,8 +158,8 @@ function selectFromPointer(event) {
 
 function resize() {
   if (!renderer || !stage) return;
-  const width = Math.max(stage.clientWidth, 320);
-  const height = Math.max(stage.clientHeight, 360);
+  const width = Math.max(stage.clientWidth, 240);
+  const height = Math.max(stage.clientHeight, 180);
   renderer.setSize(width, height, false);
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
@@ -222,8 +185,31 @@ function frameRobot() {
 function animate() {
   animationFrame = requestAnimationFrame(animate);
   controls.update();
-  updateHotspots();
   renderer.render(scene, camera);
+}
+
+function moveCamera(command) {
+  if (!camera || !controls) return;
+  if (command === "reset") {
+    if (robot) frameRobot();
+    return;
+  }
+
+  const offset = camera.position.clone().sub(controls.target);
+  const spherical = new THREE.Spherical().setFromVector3(offset);
+  const angleStep = THREE.MathUtils.degToRad(12);
+  switch (command) {
+    case "left": spherical.theta -= angleStep; break;
+    case "right": spherical.theta += angleStep; break;
+    case "up": spherical.phi = Math.max(0.2, spherical.phi - angleStep); break;
+    case "down": spherical.phi = Math.min(Math.PI - 0.2, spherical.phi + angleStep); break;
+    case "zoomIn": spherical.radius = Math.max(controls.minDistance, spherical.radius * 0.84); break;
+    case "zoomOut": spherical.radius = Math.min(controls.maxDistance, spherical.radius * 1.16); break;
+    default: return;
+  }
+  camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(spherical));
+  camera.lookAt(controls.target);
+  controls.update();
 }
 
 function init() {
@@ -288,7 +274,6 @@ function init() {
           }
         });
         tagJointMeshes();
-        createHotspots();
       },
       undefined,
       (error) => {
@@ -329,6 +314,9 @@ window.lekiwiTwin = {
   destroy() {
     cancelAnimationFrame(animationFrame);
     renderer?.dispose();
+  },
+  camera(command) {
+    moveCamera(command);
   },
 };
 

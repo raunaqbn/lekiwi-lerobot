@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    html, body, #twin-stage, #robot-canvas { width: 100%; height: 100%; margin: 0; overflow: hidden; background: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    #twin-stage { position: relative; min-height: 100%; }
+    #robot-canvas { display: block; touch-action: none; }
+    #twin-loading { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 5px; color: #68738a; font-size: 12px; pointer-events: none; }
+    #twin-loading[hidden] { display: none; }
+    #selected-part-name, #selected-part-state, #selected-part-id, #selected-part-voltage, #selected-part-temperature, #selected-part-position, #selected-part-torque { display: none; }
+  </style>
+</head>
+<body>
+  <div id="twin-stage">
+    <canvas id="robot-canvas" aria-label="Interactive 3D model of the LeKiwi robot"></canvas>
+    <div id="twin-loading"><strong>Loading robot</strong><span>Preparing the official CAD…</span></div>
+  </div>
+  <button id="reset-camera" hidden></button>
+  <span id="selected-part-name"></span><span id="selected-part-state"></span><span id="selected-part-id"></span>
+  <span id="selected-part-voltage"></span><span id="selected-part-temperature"></span><span id="selected-part-position"></span><span id="selected-part-torque"></span>
+  <script>
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = (resource, options) => {
+      const raw = typeof resource === 'string' ? resource : resource.url;
+      if (raw.startsWith('/static/models/')) {
+        const path = raw.substring('/static/models/'.length);
+        return originalFetch('lekiwi://resource/models/' + path, options);
+      }
+      return originalFetch(resource, options);
+    };
+    window.addEventListener('lekiwi-motor-select', (event) => {
+      window.webkit?.messageHandlers?.motorSelected?.postMessage(event.detail);
+    });
+  </script>
+  <script defer src="../lekiwi_3d.bundle.js"></script>
+</body>
+</html>
