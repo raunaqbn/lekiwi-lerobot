@@ -16,9 +16,11 @@ struct ControlDeck: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.top, 10)
-            .padding(.bottom, 8)
+            .padding(.top, compact ? 8 : 10)
+            .padding(.bottom, compact ? 6 : 8)
+            .frame(maxWidth: .infinity, alignment: .top)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(uiColor: .systemBackground))
         .overlay(alignment: .top) { Divider() }
         .accessibilityElement(children: .contain)
@@ -104,10 +106,11 @@ struct ControlDeck: View {
             }
             .buttonStyle(.plain)
 
-            HStack(spacing: 10) {
-                jointButton(direction: -1, label: store.selectedJoint.negativeLabel, symbol: "minus")
-                jointButton(direction: 1, label: store.selectedJoint.positiveLabel, symbol: "plus")
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 0) {
+                jointButton(direction: -1, label: store.selectedJoint.negativeLabel)
+                jointButton(direction: 1, label: store.selectedJoint.positiveLabel)
             }
+            .frame(maxWidth: .infinity)
 
             HStack(spacing: 12) {
                 if let position = store.selectedMotor?.positionDegrees {
@@ -137,6 +140,7 @@ struct ControlDeck: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             Spacer(minLength: 4)
             Button {
                 store.setArmed(!store.isArmed)
@@ -165,7 +169,7 @@ struct ControlDeck: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
             }
-            .frame(maxWidth: .infinity, minHeight: 50)
+            .frame(maxWidth: .infinity, minHeight: compact ? 44 : 50)
         }
         .buttonStyle(.bordered)
         .disabled(!store.isArmed)
@@ -179,7 +183,7 @@ struct ControlDeck: View {
                 Text("Stop")
                     .font(.caption2.weight(.semibold))
             }
-            .frame(maxWidth: .infinity, minHeight: 50)
+            .frame(maxWidth: .infinity, minHeight: compact ? 44 : 50)
         }
         .buttonStyle(.borderedProminent)
         .tint(AppPalette.critical)
@@ -187,11 +191,11 @@ struct ControlDeck: View {
         .accessibilityHint("Stops motion and disables the controls")
     }
 
-    private func jointButton(direction: Int, label: String, symbol: String) -> some View {
+    private func jointButton(direction: Int, label: String) -> some View {
         Button { store.pulseJoint(direction: direction) } label: {
-            Label(label, systemImage: symbol)
+            Text(label)
                 .font(.headline)
-                .frame(maxWidth: .infinity, minHeight: 58)
+                .frame(maxWidth: .infinity, minHeight: compact ? 50 : 58)
         }
         .buttonStyle(.bordered)
         .disabled(!store.isArmed)

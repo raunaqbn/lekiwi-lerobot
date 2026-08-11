@@ -8,6 +8,7 @@ struct OperateView: View {
         GeometryReader { proxy in
             let landscape = proxy.size.width > proxy.size.height
             let compact = proxy.size.height < 700
+            let deckHeight: CGFloat = store.controlMode == .base ? 370 : (compact ? 258 : 286)
 
             if landscape {
                 HStack(spacing: 0) {
@@ -16,14 +17,16 @@ struct OperateView: View {
                     ControlDeck(compact: true)
                         .frame(width: min(430, proxy.size.width * 0.48))
                 }
+                .padding(.bottom, tabBarClearance)
             } else {
                 VStack(spacing: 0) {
                     CameraField(showTwin: { showsTwin = true })
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .layoutPriority(1)
+                        .frame(maxWidth: .infinity, minHeight: 180, maxHeight: .infinity)
                     ControlDeck(compact: compact)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: min(deckHeight, max(230, proxy.size.height - tabBarClearance - 180)))
                 }
+                .padding(.bottom, tabBarClearance)
             }
         }
         .background(AppPalette.mist.ignoresSafeArea())
@@ -52,6 +55,11 @@ struct OperateView: View {
                 ConnectionChip()
             }
         }
+    }
+
+    private var tabBarClearance: CGFloat {
+        if #available(iOS 26.0, *) { return 82 }
+        return 0
     }
 }
 
