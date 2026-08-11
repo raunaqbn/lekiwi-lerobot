@@ -93,8 +93,9 @@ Speed levels exactly match the deployed `TeleopControlBridge`:
 ## Follower-arm mapping
 
 Tapping a joint directly on the 3D model selects the matching control target. Tapping base-wheel
-geometry switches back to Omni base mode. Changing targets sends Stop before a different motor can
-be moved.
+geometry switches back to Omni base mode. Changing targets releases only the active movement pulse;
+it keeps arm takeover and every cached joint target engaged so loaded joints such as shoulder lift
+continue holding their last commanded position.
 
 | App target | Follower motor | Dashboard joint key |
 | --- | ---: | --- |
@@ -113,7 +114,8 @@ every 160 ms for one 420 ms step. Tapping **Stop** sends the same latched Stop u
 - The app never calls the motor bus directly.
 - Movement cannot be enabled unless live follower telemetry says control is permitted.
 - The optional leader-arm connection does not gate follower controls.
-- Changing base/arm mode or selected joint while movement is enabled sends Stop.
+- Changing base/arm mode or selected joint releases the active pulse without globally stopping,
+  disarming, or clearing follower-arm position targets.
 - A control failure disables the UI and clears any active step.
 - The Stop buttons send Stop followed by `enabled: false`.
 - Backgrounding, sign-out, and Access expiry stop motion and close streams.

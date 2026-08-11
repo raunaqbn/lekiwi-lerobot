@@ -61,6 +61,30 @@ final class JoystickMappingTests: XCTestCase {
         store.disconnect()
     }
 
+    @MainActor
+    func testSwitchingControlTargetsPreservesShoulderLiftHoldAndArmedState() {
+        let store = RobotStore(restoreSession: false)
+        store.useDemo()
+        store.selectJoint(.shoulderLift)
+        store.setArmed(true)
+        store.jointJog = CGPoint(x: 1, y: 0)
+
+        store.selectControlMode(.base)
+
+        XCTAssertTrue(store.isArmed)
+        XCTAssertEqual(store.selectedMotorID, ArmJoint.shoulderLift.id)
+        XCTAssertEqual(store.selectedJoint, .shoulderLift)
+        XCTAssertEqual(store.jointJog, .zero)
+
+        store.selectControlMode(.arm)
+        store.selectJoint(.elbowFlex)
+
+        XCTAssertTrue(store.isArmed)
+        XCTAssertEqual(store.selectedJoint, .elbowFlex)
+        XCTAssertEqual(store.controlMode, .arm)
+        store.disconnect()
+    }
+
     func testMJPEGParserHandlesSplitFrames() {
         var parser = JPEGFrameParser()
         let prefix = Data("--frame\r\nContent-Type: image/jpeg\r\n\r\n".utf8)

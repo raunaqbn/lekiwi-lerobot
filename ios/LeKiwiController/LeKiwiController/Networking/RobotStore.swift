@@ -108,14 +108,17 @@ final class RobotStore: ObservableObject {
         didSet {
             guard selectedMotorID != oldValue else { return }
             let nextMode: ControlMode = selectedMotorID <= 6 ? .arm : .base
-            if controlMode != nextMode { controlMode = nextMode }
-            if isArmed || requestedDrive { releaseDrive(sendRemoteStop: isAuthenticated) }
+            if controlMode != nextMode {
+                controlMode = nextMode
+            } else if isArmed || requestedDrive {
+                stopActiveMotionPreservingArmHold()
+            }
         }
     }
     @Published var controlMode: ControlMode = .base {
         didSet {
             guard controlMode != oldValue else { return }
-            if isArmed || requestedDrive { releaseDrive(sendRemoteStop: isAuthenticated) }
+            if isArmed || requestedDrive { stopActiveMotionPreservingArmHold() }
         }
     }
     @Published var connectionMessage = "Checking secure session…"
@@ -348,11 +351,11 @@ final class RobotStore: ObservableObject {
         Task {
             do {
                 try await postControl(path: "api/control/enable", payload: ["enabled": true])
+                // Keep every follower joint under position hold while the base is selected.
+                // Releasing arm takeover here lets gravity move loaded joints such as shoulder lift.
+                try await postControl(path: "api/control/arm", payload: ["enabled": true])
                 if controlMode == .base {
-                    try await postControl(path: "api/control/arm", payload: ["enabled": false])
                     try await postControl(path: "api/control/speed", payload: ["speed": speedLevel.index])
-                } else {
-                    try await postControl(path: "api/control/arm", payload: ["enabled": true])
                 }
                 guard requestedDrive, driveRequestID == requestID else {
                     _ = try? await postControl(path: "api/control/stop", payload: [:], applyState: false)
@@ -530,6 +533,40 @@ final class RobotStore: ObservableObject {
         Task {
             _ = try? await postControl(path: "api/control/stop", payload: [:], applyState: false)
             _ = try? await postControl(path: "api/control/enable", payload: ["enabled": false], applyState: false)
+        }
+    }
+
+    private func stopActiveMotionPreservingArmHold() {
+        let baseKeysToRelease = lastActiveKeys
+        let jointToRelease = lastJointPulse
+        motionPulseTask?.cancel()
+        motionPulseTask = nil
+        translation = .zero
+        rotation = .zero
+        jointJog = .zero
+        lastActiveKeys = []
+        lastJointPulse = nil
+
+        guard isAuthenticated, !baseKeysToRelease.isEmpty || jointToRelease != nil else { return }
+        Task {
+            for key in baseKeysToRelease {
+                _ = try? await postControl(
+                    path: "api/control/base",
+                    payload: ["key": key.rawValue, "active": false],
+                    applyState: false
+                )
+            }
+            if let jointToRelease {
+                _ = try? await postControl(
+                    path: "api/control/joint",
+                    payload: [
+                        "joint": jointToRelease.joint.serverKey,
+                        "direction": jointToRelease.direction,
+                        "active": false,
+                    ],
+                    applyState: false
+                )
+            }
         }
     }
 
