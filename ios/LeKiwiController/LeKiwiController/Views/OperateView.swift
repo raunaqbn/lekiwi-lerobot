@@ -8,7 +8,10 @@ struct OperateView: View {
         GeometryReader { proxy in
             let landscape = proxy.size.width > proxy.size.height
             let compact = proxy.size.height < 700
-            let deckHeight: CGFloat = store.controlMode == .base ? 370 : (compact ? 258 : 286)
+            let requestedDeckHeight: CGFloat = store.controlMode == .base ? 370 : (compact ? 258 : 286)
+            let availablePortraitHeight = max(410, proxy.size.height - tabBarClearance)
+            let deckHeight = min(requestedDeckHeight, max(230, availablePortraitHeight - 180))
+            let cameraHeight = availablePortraitHeight - deckHeight
 
             if landscape {
                 HStack(spacing: 0) {
@@ -21,15 +24,17 @@ struct OperateView: View {
             } else {
                 VStack(spacing: 0) {
                     CameraField(showTwin: { showsTwin = true })
-                        .frame(maxWidth: .infinity, minHeight: 180, maxHeight: .infinity)
+                        .frame(width: proxy.size.width, height: cameraHeight)
                     ControlDeck(compact: compact)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: min(deckHeight, max(230, proxy.size.height - tabBarClearance - 180)))
+                        .frame(width: proxy.size.width, height: deckHeight)
                 }
                 .padding(.bottom, tabBarClearance)
+                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
             }
         }
         .background(AppPalette.mist.ignoresSafeArea())
+        .toolbarBackground(Color(uiColor: .systemBackground), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .sheet(isPresented: $showsTwin) {
             NavigationStack {
                 TwinTelemetryView()
@@ -104,49 +109,59 @@ private struct CameraField: View {
     let showTwin: () -> Void
 
     var body: some View {
-        ZStack(alignment: .top) {
-            if let image = store.cameraImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-            } else if store.isDemoSession {
-                DemoCameraPlate()
-            } else {
-                CameraWaitingPlate(camera: store.selectedCamera)
-            }
+        GeometryReader { proxy in
+            ZStack(alignment: .top) {
+                cameraContent
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+                    .clipped()
 
-            HStack(spacing: 8) {
-                Picker("Camera", selection: $store.selectedCamera) {
-                    Text("Front").tag("front")
-                    Text("Wrist").tag("wrist")
+                HStack(spacing: 8) {
+                    Picker("Camera", selection: $store.selectedCamera) {
+                        Text("Front").tag("front")
+                        Text("Wrist").tag("wrist")
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 180)
+                    .onChange(of: store.selectedCamera) { _, _ in store.cameraImage = nil }
+
+                    Spacer(minLength: 0)
+
+                    Button(action: showTwin) {
+                        Label("3D", systemImage: "cube.transparent")
+                            .font(.subheadline.weight(.semibold))
+                            .padding(.horizontal, 12)
+                            .frame(minHeight: 44)
+                            .background(.regularMaterial, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Open 3D robot model")
                 }
-                .pickerStyle(.segmented)
-                .frame(maxWidth: 180)
-                .onChange(of: store.selectedCamera) { _, _ in store.cameraImage = nil }
-
-                Spacer(minLength: 0)
-
-                Button(action: showTwin) {
-                    Label("3D", systemImage: "cube.transparent")
-                        .font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 12)
-                        .frame(minHeight: 44)
-                        .background(.regularMaterial, in: Capsule())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Open 3D robot model")
-            }
-            .padding(10)
-        }
-        .overlay(alignment: .bottomLeading) {
-            Label(cameraLabel, systemImage: "video.fill")
-                .font(.caption.weight(.semibold))
-                .padding(.horizontal, 10)
-                .frame(minHeight: 36)
-                .background(.regularMaterial, in: Capsule())
                 .padding(10)
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .overlay(alignment: .bottomLeading) {
+                Label(cameraLabel, systemImage: "video.fill")
+                    .font(.caption.weight(.semibold))
+                    .padding(.horizontal, 10)
+                    .frame(minHeight: 36)
+                    .background(.regularMaterial, in: Capsule())
+                    .padding(10)
+            }
         }
         .clipped()
+    }
+
+    @ViewBuilder
+    private var cameraContent: some View {
+        if let image = store.cameraImage {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+        } else if store.isDemoSession {
+            DemoCameraPlate()
+        } else {
+            CameraWaitingPlate(camera: store.selectedCamera)
+        }
     }
 
     private var cameraLabel: String {
