@@ -1,156 +1,88 @@
-# LeKiwi v0.6.1 cutover and rollback
+# LeKiwi operator runbook
 
-This checkout is the parallel LeKiwi runtime. It is pinned to upstream tag `v0.6.1`
-at commit `7e241bd630a3719a56157a497ce5d08f244784f1`. The existing v0.3.4
-checkout, environments, and calibration files are deliberately not modified.
-
-## Installed locations
-
-| Component | Mac | Raspberry Pi |
-|---|---|---|
-| Source | `/Users/raunaqnaidu/Documents/robotics/lerobot-v061` | `/home/raunaqnaidu/lerobot-v061` |
-| Conda environment | `/Users/raunaqnaidu/miniconda3/envs/lerobot061` | `/home/raunaqnaidu/miniconda3/envs/lerobot061` |
-| Calibration root | `/Users/raunaqnaidu/.cache/huggingface/lerobot-v061` | `/home/raunaqnaidu/.cache/huggingface/lerobot-v061` |
-
-The copied leader calibration SHA-256 is
-`b7275c47d27710ca9f50588ea0598a787324cbcb59f79382a5ea544c1f8fd1a1`.
-The copied follower calibration SHA-256 is
-`ef8139e817de906f7cca055cb2c763492e6713c1a53276d1676e81e5fc4ea347`.
+This runbook covers the local-first diagnostics and teleoperation stack in this fork. It intentionally uses hostnames, environment variables, and persistent device paths instead of a maintainer's private network or USB serial numbers.
 
 ## Preflight
 
-1. Lift the robot so all three wheels are clear of the floor. Keep hands and
-   cables out of the arm and wheel travel.
-2. Power the Raspberry Pi, follower servo rail, cameras, leader arm, and base.
-3. Confirm the Mac and Pi can reach each other at `10.0.0.104`.
-4. Do not run standalone diagnostics while teleoperation is active. The live
-   feed is embedded in teleoperation so each serial bus has exactly one owner.
+1. Lift all three wheels and clear the full arm envelope.
+2. Keep the physical servo/base power cutoff within reach.
+3. Power the Pi, follower servo rail, leader arm, cameras, and base.
+4. Resolve the Pi as `lekiwi.local` or set `LEKIWI_HOST` to its private address.
+5. Use `ls -l /dev/serial/by-id /dev/v4l/by-id` to identify stable device paths.
+6. Never run standalone diagnostics while the same bus is owned by teleoperation.
 
-## Start v0.6.1
-
-In a terminal connected to the Pi:
+## Raspberry Pi host
 
 ```bash
-export HF_LEROBOT_HOME=/home/raunaqnaidu/.cache/huggingface/lerobot-v061
-cd /home/raunaqnaidu/lerobot-v061
-/home/raunaqnaidu/miniconda3/envs/lerobot061/bin/python -m lerobot.robots.lekiwi.lekiwi_host --robot.id=anton
+cd ~/lekiwi
+export LEKIWI_FOLLOWER_PORT=/dev/serial/by-id/<follower-controller>
+export LEKIWI_FRONT_CAMERA=/dev/v4l/by-id/<front-camera>
+export LEKIWI_WRIST_CAMERA=/dev/v4l/by-id/<wrist-camera>
+export LEKIWI_DIAGNOSTICS_HOST=0.0.0.0  # trusted LAN or authenticated tunnel only
+uv run --extra lekiwi python -m lerobot.robots.lekiwi.lekiwi_host --robot.id=lekiwi
 ```
 
-Leave that process running. It owns the nine-motor follower bus and serves the
-cached follower diagnostics API at `http://10.0.0.104:8091/api/state`.
+The process owns the nine-motor follower bus and exposes cached diagnostics at `http://lekiwi.local:8091/api/state`. A powered USB adapter with no servo replies is reported as likely **servo rail off**, not nine independent motor faults.
 
-In a focused Mac terminal:
+## Leader computer
 
 ```bash
-export HF_LEROBOT_HOME=/Users/raunaqnaidu/.cache/huggingface/lerobot-v061
-cd /Users/raunaqnaidu/Documents/robotics/lerobot-v061
-/Users/raunaqnaidu/miniconda3/envs/lerobot061/bin/python examples/lekiwi/teleoperate.py
+cd ~/lekiwi
+export LEKIWI_HOST=lekiwi.local
+export LEKIWI_LEADER_PORT=/dev/serial/by-id/<leader-controller>
+uv run --extra lekiwi python examples/lekiwi/teleoperate.py --no-rerun
 ```
 
-The Mac process owns the six-motor leader bus, starts Rerun, and serves the
-aggregate dashboard at `http://127.0.0.1:8090`. Keep Terminal focused for the
-pulse keyboard backend: `W/S` forward/back, `A/D` strafe, `Z/X` rotate,
-`R/F` speed, and `Ctrl+C` to stop. A key command expires about 0.35 seconds
-after its final repeat.
+The leader process owns the six-motor leader bus and serves the combined dashboard at `http://127.0.0.1:8090`. Leader voltage and follower voltage are separate sources; a 5 V leader and 3S follower can both be healthy.
 
-The dashboard uses server-published, calibration-aware joint radians. The CAD
-is anchored by default. “Estimated chassis motion” enables visualization-only,
-drift-prone wheel odometry; “Reset odometry” changes only the displayed origin.
+The dashboard's Follower arm mode is a takeover. It freezes or jogs cached follower targets and intentionally replaces manual leader commands. Select **Stop / Release arm** before expecting leader movement to pass through again.
 
-## Lifted validation checklist
+## Lifted validation
 
-- Both APIs report `schema_version: 2.0` and protocol
-  `lekiwi-v061-live-telemetry-v1`.
-- The aggregate dashboard reports 15 motors and two cameras.
-- Base camera is upright; wrist camera is rotated 90 degrees.
-- Move each leader joint independently and confirm the physical follower and
-  identically named CAD joint move in the same direction.
-- Briefly test `W/S`, `A/D`, `Z/X`, `R/F`, release expiry, and `Ctrl+C`.
-- Verify the dashboard changes while teleoperation remains responsive and that
-  a feed loss marks the model stale within two seconds.
-- Run lifted for ten minutes. Reject cutover on a watchdog trip, serial-bus
-  collision, or control-loop gap over 500 ms.
+- Both APIs report schema `2.0` and the live telemetry protocol.
+- The combined dashboard reports 15 motors: six leader plus nine follower.
+- All follower motors have fresh readings, the expected IDs, and roughly consistent rail voltage.
+- Front and wrist cameras are correctly oriented.
+- Each leader joint moves the identically named follower/CAD joint in the expected direction.
+- W/S, A/D, Z/X, speed controls, release expiry, and Stop behave correctly.
+- A feed loss becomes stale within two seconds and never masquerades as a live healthy sample.
+- A ten-minute lifted run has no bus collision, write exception, watchdog trip, or control-loop gap above 500 ms.
 
-Only after those checks pass should the robot be lowered for a short,
-low-speed floor test. Validate odometry direction but do not treat it as an
-absolute localization source.
+Only after passing should you perform a short, low-speed floor test.
 
-## Rollback
+## Standalone maintenance diagnostics
 
-Press `Ctrl+C` in the Mac teleoperation terminal, then in the Pi host terminal.
-After both v0.6.1 processes exit, start the previous v0.3.4 Pi host and Mac
-teleoperation from their original checkout and environments. No calibration
-copy-back is required because the v0.3.4 files were never changed.
-
-## Maintenance diagnostics
-
-Standalone diagnostics remains available when teleoperation is stopped:
+Stop the owner process first:
 
 ```bash
-cd /home/raunaqnaidu/lerobot-v061
-export HF_LEROBOT_HOME=/home/raunaqnaidu/.cache/huggingface/lerobot-v061
-/home/raunaqnaidu/miniconda3/envs/lerobot061/bin/python -m lerobot.robots.lekiwi.diagnostics \
-  --serial-port=/dev/serial/by-id/usb-1a86_USB_Single_Serial_5A7A055267-if00 \
-  --host=0.0.0.0 --http-port=8091 --no-open
+uv run --extra lekiwi lerobot-lekiwi-diagnostics \
+  --serial-port /dev/serial/by-id/<controller> \
+  --host 127.0.0.1 \
+  --http-port 8090
 ```
 
-If a bus lease is held by teleoperation, standalone diagnostics must not open
-the device. Use the embedded feed or stop teleoperation first.
+The serial bus remains read-only with respect to torque and goal positions, but it still requires an exclusive lease. The app remembers the last successful controller and can auto-detect plausible USB serial devices on the next launch.
 
 ## Post-session latency traces
 
-Latency tracing is opt-in and does not write to a live database. The motor and
-camera owner loops put compact span records into bounded in-memory queues. A
-background thread flushes JSONL batches to local storage; if the queue fills,
-records are dropped rather than delaying control.
-
-Start the Pi host with a local trace directory:
+Tracing is opt-in and batches JSONL records outside the control loop:
 
 ```bash
-/home/raunaqnaidu/miniconda3/envs/lerobot061/bin/python \
-  -m lerobot.robots.lekiwi.lekiwi_host \
-  --robot.id=anton \
-  --host.latency_trace_dir=/home/raunaqnaidu/lekiwi-latency
+# Pi
+uv run --extra lekiwi python -m lerobot.robots.lekiwi.lekiwi_host \
+  --robot.id=lekiwi \
+  --host.latency_trace_dir=$HOME/.local/state/lekiwi/latency
+
+# Leader computer
+uv run --extra lekiwi python examples/lekiwi/teleoperate.py \
+  --latency-trace-dir $HOME/.local/state/lekiwi/latency
+
+# After the session
+uv run --extra lekiwi lerobot-lekiwi-latency-report $HOME/.local/state/lekiwi/latency
 ```
 
-Start the Mac teleoperator with its own local trace directory:
+The report separates motor reads/writes, camera capture/encode, diagnostics sampling, network/queue residual, camera decode, leader reads, and Rerun logging. One-way network latency is not claimed without clock-offset measurement.
 
-```bash
-/Users/raunaqnaidu/miniconda3/envs/lerobot061/bin/python \
-  examples/lekiwi/teleoperate.py \
-  --latency-trace-dir /Users/raunaqnaidu/lekiwi-latency
-```
+## Remote access
 
-After the run, copy the Pi JSONL file into the Mac directory and analyze both
-files together:
-
-```bash
-/Users/raunaqnaidu/miniconda3/envs/lerobot061/bin/python \
-  -m lerobot.robots.lekiwi.latency_report \
-  /Users/raunaqnaidu/lekiwi-latency
-```
-
-The report ranks stages by p95 latency and includes p50, p99, maximum, sample
-count, dropped records, and cross-node trace coverage. It separates follower
-motor reads/writes, each camera capture and JPEG encode, diagnostics sampling,
-network/queue residual, camera decode, leader reads, and Rerun logging.
-
-To create a queryable database only after the session has ended:
-
-```bash
-/Users/raunaqnaidu/miniconda3/envs/lerobot061/bin/python \
-  -m lerobot.robots.lekiwi.latency_report \
-  /Users/raunaqnaidu/lekiwi-latency \
-  --sqlite /Users/raunaqnaidu/lekiwi-latency/latency.sqlite
-```
-
-The SQLite export is intentionally a post-processing step. A future hosted
-Postgres or ClickHouse exporter should read these completed JSONL files rather
-than run inside either real-time control process.
-
-`command_to_observation_rtt` is measured exactly on one monotonic Mac clock.
-`network_queue_residual_ms` subtracts the host's monotonic processing duration
-from that round trip. The residual still combines response serialization,
-socket queues, internet uplink, and internet downlink. Individual one-way
-values are not claimed until a clock-offset probe or synchronized clocks can
-attach an uncertainty bound to those estimates.
+Do not bind the Flask service directly to the public internet. Follow [`deploy/README.md`](../../deploy/README.md) to put a Cloudflare Access-protected Tunnel or private VPN in front of the Pi. Browser safeguards and software watchdogs are not an emergency stop.

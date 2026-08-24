@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from dataclasses import dataclass, field
 
 from lerobot.cameras import CameraConfig, Cv2Rotation
@@ -23,7 +24,7 @@ from ..config import RobotConfig
 def lekiwi_cameras_config() -> dict[str, CameraConfig]:
     return {
         "front": OpenCVCameraConfig(
-            index_or_path="/dev/v4l/by-path/platform-xhci-hcd.1-usb-0:1:1.0-video-index0",
+            index_or_path=os.getenv("LEKIWI_FRONT_CAMERA", "/dev/video0"),
             fps=30,
             width=640,
             height=480,
@@ -31,7 +32,7 @@ def lekiwi_cameras_config() -> dict[str, CameraConfig]:
             rotation=Cv2Rotation.NO_ROTATION,
         ),
         "wrist": OpenCVCameraConfig(
-            index_or_path="/dev/v4l/by-path/platform-xhci-hcd.0-usb-0:1:1.0-video-index0",
+            index_or_path=os.getenv("LEKIWI_WRIST_CAMERA", "/dev/video2"),
             fps=30,
             width=480,
             height=640,
@@ -44,7 +45,9 @@ def lekiwi_cameras_config() -> dict[str, CameraConfig]:
 @RobotConfig.register_subclass("lekiwi")
 @dataclass
 class LeKiwiConfig(RobotConfig):
-    port: str = "/dev/serial/by-id/usb-1a86_USB_Single_Serial_5A7A055267-if00"
+    # Prefer a persistent /dev/serial/by-id path in production. The environment
+    # fallback keeps the public package free of machine-specific USB serials.
+    port: str = os.getenv("LEKIWI_FOLLOWER_PORT", "/dev/ttyACM0")
 
     disable_torque_on_disconnect: bool = True
 
@@ -82,7 +85,9 @@ class LeKiwiHostConfig:
     max_loop_freq_hz: int = 30
 
     diagnostics_enabled: bool = True
-    diagnostics_host: str = "0.0.0.0"
+    # Loopback is the safe default. The Pi service opts into a LAN bind via its
+    # environment file so a tunnel or trusted leader computer can reach it.
+    diagnostics_host: str = os.getenv("LEKIWI_DIAGNOSTICS_HOST", "127.0.0.1")
     diagnostics_port: int = 8091
 
     # Optional session traces are batched to local JSONL by a background

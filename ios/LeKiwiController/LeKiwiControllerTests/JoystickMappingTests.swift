@@ -97,7 +97,7 @@ final class JoystickMappingTests: XCTestCase {
     }
 
     func testMJPEGAcceptsOuterStreamAndIndividualJPEGPartResponses() throws {
-        let url = URL(string: "https://robot.offerhack.io/api/cameras/front/stream")!
+        let url = RobotService.url(path: "api/cameras/front/stream")
         let outer = HTTPURLResponse(
             url: url,
             statusCode: 200,
@@ -177,14 +177,14 @@ final class JoystickMappingTests: XCTestCase {
         let state = "0123456789abcdef0123456789abcdef"
         let token = "header.payload.signature"
         let callback = URL(
-            string: "com.raunaqnaidu.lekiwi://access/callback#token=\(token)&state=\(state)"
+            string: "\(AccessCallback.scheme)://access/callback#token=\(token)&state=\(state)"
         )!
 
         XCTAssertEqual(try AccessCallback.token(from: callback, expectedState: state), token)
         XCTAssertThrowsError(try AccessCallback.token(from: callback, expectedState: "wrong-state"))
         XCTAssertEqual(
             RobotService.authenticationURL(state: state).absoluteString,
-            "https://robot.offerhack.io/api/mobile/auth?state=\(state)"
+            "https://robot.example.com/api/mobile/auth?state=\(state)"
         )
     }
 

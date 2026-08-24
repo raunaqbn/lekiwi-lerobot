@@ -119,9 +119,7 @@ def test_combined_snapshot_keeps_overlapping_leader_and_follower_ids_distinct():
         )
         follower.latest_motors.append(follower_motor)
 
-    state = combine_snapshots(
-        leader.snapshot(), follower.snapshot(), "http://10.0.0.104:8091/api/state"
-    )
+    state = combine_snapshots(leader.snapshot(), follower.snapshot(), "http://192.0.2.10:8091/api/state")
 
     assert state["connected_sources"] == 2
     assert state["system_counts"]["expected"] == 15
@@ -140,21 +138,16 @@ def test_offline_source_motors_keep_their_source_identity():
     state = combine_snapshots(LeKiwiDiagnostics(demo=True).snapshot())
 
     offline_role = "follower" if state["sources"]["leader"]["connected"] else "leader"
-    assert all(
-        motor["source"] == offline_role for motor in state["sources"][offline_role]["motors"]
-    )
+    assert all(motor["source"] == offline_role for motor in state["sources"][offline_role]["motors"])
 
 
 def test_remote_follower_url_is_normalized():
-    assert (
-        RemoteDiagnosticsProxy.normalize_url("10.0.0.104:8091")
-        == "http://10.0.0.104:8091/api/state"
-    )
+    assert RemoteDiagnosticsProxy.normalize_url("192.0.2.10:8091") == "http://192.0.2.10:8091/api/state"
 
 
 def test_remote_proxy_does_not_present_cached_data_as_live_after_feed_failure():
     proxy = RemoteDiagnosticsProxy()
-    proxy.url = "http://10.0.0.104:8091/api/state"
+    proxy.url = "http://192.0.2.10:8091/api/state"
     proxy.latest = LeKiwiDiagnostics(demo=True).snapshot()
     proxy.error = "Follower diagnostics endpoint did not respond in time"
 
@@ -164,8 +157,8 @@ def test_remote_proxy_does_not_present_cached_data_as_live_after_feed_failure():
     assert state["counts"]["detected"] == 0
     assert state["error"] == "Follower diagnostics endpoint did not respond in time"
     assert (
-        RemoteDiagnosticsProxy.normalize_url("http://10.0.0.104:8091/api/state")
-        == "http://10.0.0.104:8091/api/state"
+        RemoteDiagnosticsProxy.normalize_url("http://192.0.2.10:8091/api/state")
+        == "http://192.0.2.10:8091/api/state"
     )
 
 

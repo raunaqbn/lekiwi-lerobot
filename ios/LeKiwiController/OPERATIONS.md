@@ -5,7 +5,7 @@
 ```text
 iOS app
   └─ Native system authentication + Keychain Access JWT
-      └─ https://robot.offerhack.io
+      └─ https://robot.example.com
           ├─ /api/mobile/auth* → Cloudflare Worker (JWT verification + app callback)
           └─ all other paths → existing Cloudflare Tunnel
               └─ Raspberry Pi live diagnostics service
@@ -18,8 +18,8 @@ Worker is routed only to `/api/mobile/auth*`; it does not proxy or modify the da
 telemetry, or controls. The app does not open a new serial connection and does not use
 `mobile_gateway.py`.
 
-The Worker source of truth is `cloudflare/lekiwi-mobile-auth`. Its checked-in Access team domain and
-application audience are public identifiers, not credentials. The Worker validates the assertion's
+The Worker source of truth is `cloudflare/lekiwi-mobile-auth`. Its example values must be replaced
+in an environment-specific configuration. The Worker validates the assertion's
 RS256 signature, issuer, and audience using Cloudflare Access's published keys before returning it
 to the registered app callback.
 
@@ -38,16 +38,16 @@ The deployed backend source of truth is the `lerobot-v061` checkout:
 3. Cloudflare redirects to Google. Face ID and Google passkeys run in the system authentication
    context instead of the app's `WKWebView`.
 4. After Access authenticates the request, the edge Worker verifies `Cf-Access-Jwt-Assertion` and
-   returns it through a state-verified `com.raunaqnaidu.lekiwi://access/callback` URL.
+   returns it through a state-verified custom URL callback configured by the app.
 5. The app stores the application JWT in Keychain and sends it using Cloudflare's supported
    `cf-access-token` request header.
-6. The app verifies that `/api/state` returns JSON from `robot.offerhack.io` before exposing the
+6. The app verifies that `/api/state` returns JSON from the configured dashboard host before exposing the
    operating interface.
 7. A redirect, HTML response, 401, or 403 from a protected route is treated as an expired session.
    Motion is stopped, streams close, and the login page returns.
 
 Sign-out stops motion, disables the control bridge, closes both streams, removes the Keychain JWT,
-and clears legacy cookies scoped to `offerhack.io` and the Cloudflare Access team domain.
+and clears cookies scoped to the configured host and the Cloudflare Access team domain.
 
 No Cloudflare client secret or robot bearer token is embedded in the app or TestFlight binary.
 
@@ -72,11 +72,11 @@ status and control gate therefore use `sources.follower.connected`, follower sta
 
 ## Direction-button mapping
 
-| Button | Dashboard key |
-| --- | --- |
-| Forward / Back | W / S |
-| Left / Right | A / D |
-| Turn left / Turn right | Z / X |
+| Button                 | Dashboard key |
+| ---------------------- | ------------- |
+| Forward / Back         | W / S         |
+| Left / Right           | A / D         |
+| Turn left / Turn right | Z / X         |
 
 After the operator taps **Enable**, each direction tap creates a 420 ms bounded movement. The active
 key is refreshed every 160 ms, inside the backend's 350 ms expiry window, and receives an
@@ -84,11 +84,11 @@ key is refreshed every 160 ms, inside the backend's 350 ms expiry window, and re
 
 Speed levels exactly match the deployed `TeleopControlBridge`:
 
-| Level | Translation | Rotation | Backend index |
-| --- | ---: | ---: | ---: |
-| Slow | 0.08 m/s | 25°/s | 0 |
-| Medium | 0.16 m/s | 50°/s | 1 |
-| Fast | 0.25 m/s | 75°/s | 2 |
+| Level  | Translation | Rotation | Backend index |
+| ------ | ----------: | -------: | ------------: |
+| Slow   |    0.08 m/s |    25°/s |             0 |
+| Medium |    0.16 m/s |    50°/s |             1 |
+| Fast   |    0.25 m/s |    75°/s |             2 |
 
 ## Follower-arm mapping
 
@@ -97,14 +97,14 @@ geometry switches back to Omni base mode. Changing targets releases only the act
 it keeps arm takeover and every cached joint target engaged so loaded joints such as shoulder lift
 continue holding their last commanded position.
 
-| App target | Follower motor | Dashboard joint key |
-| --- | ---: | --- |
-| Shoulder pan | 1 | `arm_shoulder_pan.pos` |
-| Shoulder lift | 2 | `arm_shoulder_lift.pos` |
-| Elbow flex | 3 | `arm_elbow_flex.pos` |
-| Wrist flex | 4 | `arm_wrist_flex.pos` |
-| Wrist roll | 5 | `arm_wrist_roll.pos` |
-| Gripper | 6 | `arm_gripper.pos` |
+| App target    | Follower motor | Dashboard joint key     |
+| ------------- | -------------: | ----------------------- |
+| Shoulder pan  |              1 | `arm_shoulder_pan.pos`  |
+| Shoulder lift |              2 | `arm_shoulder_lift.pos` |
+| Elbow flex    |              3 | `arm_elbow_flex.pos`    |
+| Wrist flex    |              4 | `arm_wrist_flex.pos`    |
+| Wrist roll    |              5 | `arm_wrist_roll.pos`    |
+| Gripper       |              6 | `arm_gripper.pos`       |
 
 Arm mode enables `/api/control/arm`. Each −/+ tap refreshes the selected `/api/control/joint` pulse
 every 160 ms for one 420 ms step. Tapping **Stop** sends the same latched Stop used by base mode.
@@ -165,10 +165,10 @@ Then verify on a physical iPhone:
 
 ### Login completes but the app returns to sign-in
 
-- Confirm `https://robot.offerhack.io/api/state` works in Safari for the same account.
+- Confirm `https://robot.example.com/api/state` (using your hostname) works in Safari for the same account.
 - Check that the Access policy permits that identity.
 - Confirm the `lekiwi-mobile-auth` Worker is deployed on the
-  `robot.offerhack.io/api/mobile/auth*` route.
+  `robot.example.com/api/mobile/auth*` route using your hostname.
 - Confirm the Worker's `TEAM_DOMAIN` and `POLICY_AUD` match the existing Access application.
 - If the login page reports a nearby-device Bluetooth passkey error, confirm the app is Build 3 or
   newer; Build 2 used an embedded `WKWebView` and could not use Google's on-device passkey route.
@@ -201,7 +201,7 @@ direction button.
 
 Build 2 release notes:
 
-- Uses the existing `robot.offerhack.io` dashboard backend.
+- Uses the configured protected dashboard backend.
 - Adds Cloudflare Access sign-in and session expiry handling.
 - Streams the real front/wrist MJPEG feeds.
 - Uses the existing SSE telemetry and dead-man control routes.

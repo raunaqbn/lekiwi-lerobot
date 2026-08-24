@@ -14,15 +14,15 @@
 		2F399A319466C01C15243824 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5377205E47F01546B8FA5A3 /* RootView.swift */; };
 		42D8C2CAF860DAA2298663EC /* HealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 472B728704DE6D8EB575331E /* HealthView.swift */; };
 		68806C878660093B121FE2D1 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B97B2E795BA341A2764383 /* LoginView.swift */; };
-		6C519DEB022D5CF2B9129D36 /* lekiwi_3d.bundle.js in Resources */ = {isa = PBXBuildFile; fileRef = 19B94272CC376FD427297FE6 /* lekiwi_3d.bundle.js */; };
 		6FD701CFD579C93FB48383C3 /* MJPEGStreamClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08B9A362B55915E7F1CF5650 /* MJPEGStreamClient.swift */; };
 		71FFC82D3DF434BBD21BB222 /* RobotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F412FE493F4A72BB1FD3110 /* RobotStore.swift */; };
+		776D4D8B36DF954E1CE8EB98 /* lekiwi_3d.bundle.js in Resources */ = {isa = PBXBuildFile; fileRef = 2A7C4D35EDA5E83CF4B57BDC /* lekiwi_3d.bundle.js */; };
 		8AC7B09A327D2C3607E3FDB0 /* OperateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95DEF80B55EDD2FB182ED05B /* OperateView.swift */; };
-		8D328B0A6F94B4E81596E595 /* models in Resources */ = {isa = PBXBuildFile; fileRef = 94C8E68E85A869A6811F9EA3 /* models */; };
 		93F54EEC162044AD98E2FDC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F9EEE155245966D65E6C3DBC /* Assets.xcassets */; };
 		A0213D460703A02AEE25D34B /* LeKiwiControllerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C27FBC557BF3345CC7F9CC /* LeKiwiControllerApp.swift */; };
 		B137C33E9101B980B9BF252F /* RobotModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47FBEEFE6D3ADB8E939FDF87 /* RobotModels.swift */; };
 		B4B3F59BE478E9B7473F23BB /* TwinTelemetryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0879BE47EA2792E6A62FFFC /* TwinTelemetryView.swift */; };
+		C1BAFCB224ED67F9A7B8E233 /* models in Resources */ = {isa = PBXBuildFile; fileRef = 98ADDB23979DF0C8D397C65A /* models */; };
 		D182FF926E1B8620B1F28F1E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E3EBBB3FDC9B701201280A /* SettingsView.swift */; };
 		E1A0D7B9FA03C56CDDFC470C /* ControlDeck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5135ED88CB000C1DA267A78A /* ControlDeck.swift */; };
 /* End PBXBuildFile section */
@@ -39,15 +39,15 @@
 
 /* Begin PBXFileReference section */
 		08B9A362B55915E7F1CF5650 /* MJPEGStreamClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MJPEGStreamClient.swift; sourceTree = "<group>"; };
-		19B94272CC376FD427297FE6 /* lekiwi_3d.bundle.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = lekiwi_3d.bundle.js; sourceTree = "<group>"; };
+		2A7C4D35EDA5E83CF4B57BDC /* lekiwi_3d.bundle.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = lekiwi_3d.bundle.js; sourceTree = "<group>"; };
 		472B728704DE6D8EB575331E /* HealthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthView.swift; sourceTree = "<group>"; };
 		47FBEEFE6D3ADB8E939FDF87 /* RobotModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobotModels.swift; sourceTree = "<group>"; };
 		5135ED88CB000C1DA267A78A /* ControlDeck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlDeck.swift; sourceTree = "<group>"; };
 		56CF83C38E03EBFE851E382F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8E4C47ED58B733357E332439 /* LeKiwiController.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LeKiwiController.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		94C8E68E85A869A6811F9EA3 /* models */ = {isa = PBXFileReference; lastKnownFileType = folder; name = models; path = ../../src/lerobot/robots/lekiwi/static/models; sourceTree = SOURCE_ROOT; };
 		95B97B2E795BA341A2764383 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		95DEF80B55EDD2FB182ED05B /* OperateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperateView.swift; sourceTree = "<group>"; };
+		98ADDB23979DF0C8D397C65A /* models */ = {isa = PBXFileReference; lastKnownFileType = folder; name = models; path = ../../src/lerobot/robots/lekiwi/static/models; sourceTree = SOURCE_ROOT; };
 		9F412FE493F4A72BB1FD3110 /* RobotStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobotStore.swift; sourceTree = "<group>"; };
 		A16E0B607EC19F2C8759424B /* CloudflareAccessSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflareAccessSession.swift; sourceTree = "<group>"; };
 		A1C27FBC557BF3345CC7F9CC /* LeKiwiControllerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeKiwiControllerApp.swift; sourceTree = "<group>"; };
@@ -62,14 +62,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
-		014DE95CA6866825B7B29E88 /* robots */ = {
-			isa = PBXGroup;
-			children = (
-				D607143ADFD95892AFBEA23C /* lekiwi */,
-			);
-			path = robots;
-			sourceTree = "<group>";
-		};
 		03B319637A9394116D3577FF /* LeKiwiControllerTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -97,40 +89,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		328D5AA27D78BC03871E6B05 /* static */ = {
-			isa = PBXGroup;
-			children = (
-				19B94272CC376FD427297FE6 /* lekiwi_3d.bundle.js */,
-				94C8E68E85A869A6811F9EA3 /* models */,
-			);
-			path = static;
-			sourceTree = "<group>";
-		};
 		4A1440632662679EEA5BCB06 = {
 			isa = PBXGroup;
 			children = (
+				B62A8EB0490336E111B458BB /* lekiwi-open-source */,
 				DEAEBF4187F9CBA1020B49F0 /* LeKiwiController */,
 				03B319637A9394116D3577FF /* LeKiwiControllerTests */,
-				79479E05DF24CC6F726BC2B6 /* lerobot */,
 				2F1376E6E36D36625653BA5E /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		6EAEF5BD567E1ECB4F8CFE3C /* lerobot */ = {
+		8AF560980656B903478B1339 /* lerobot */ = {
 			isa = PBXGroup;
 			children = (
-				014DE95CA6866825B7B29E88 /* robots */,
+				AF32F01C0C5AF80F6F195690 /* robots */,
 			);
 			path = lerobot;
-			sourceTree = "<group>";
-		};
-		79479E05DF24CC6F726BC2B6 /* lerobot */ = {
-			isa = PBXGroup;
-			children = (
-				BB1E4573F051D0A9FBE2349C /* src */,
-			);
-			name = lerobot;
-			path = ../..;
 			sourceTree = "<group>";
 		};
 		91E73C0D270F47A6AF3796DB /* Resources */ = {
@@ -141,6 +115,31 @@
 				FB6CB17B60F60F6A4E59B192 /* Twin */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		929885AFC36477D3E0D3DC8B /* static */ = {
+			isa = PBXGroup;
+			children = (
+				2A7C4D35EDA5E83CF4B57BDC /* lekiwi_3d.bundle.js */,
+				98ADDB23979DF0C8D397C65A /* models */,
+			);
+			path = static;
+			sourceTree = "<group>";
+		};
+		AE3896CDF6F1974346DD2F59 /* lekiwi */ = {
+			isa = PBXGroup;
+			children = (
+				929885AFC36477D3E0D3DC8B /* static */,
+			);
+			path = lekiwi;
+			sourceTree = "<group>";
+		};
+		AF32F01C0C5AF80F6F195690 /* robots */ = {
+			isa = PBXGroup;
+			children = (
+				AE3896CDF6F1974346DD2F59 /* lekiwi */,
+			);
+			path = robots;
 			sourceTree = "<group>";
 		};
 		B59C171296483BE1F8C6A2D3 /* Views */ = {
@@ -157,12 +156,13 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		BB1E4573F051D0A9FBE2349C /* src */ = {
+		B62A8EB0490336E111B458BB /* lekiwi-open-source */ = {
 			isa = PBXGroup;
 			children = (
-				6EAEF5BD567E1ECB4F8CFE3C /* lerobot */,
+				E6ACF4E84742F75618672744 /* src */,
 			);
-			path = src;
+			name = "lekiwi-open-source";
+			path = ../..;
 			sourceTree = "<group>";
 		};
 		BBD161EBD0D641FCF8BD8741 /* App */ = {
@@ -181,14 +181,6 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		D607143ADFD95892AFBEA23C /* lekiwi */ = {
-			isa = PBXGroup;
-			children = (
-				328D5AA27D78BC03871E6B05 /* static */,
-			);
-			path = lekiwi;
-			sourceTree = "<group>";
-		};
 		DEAEBF4187F9CBA1020B49F0 /* LeKiwiController */ = {
 			isa = PBXGroup;
 			children = (
@@ -200,6 +192,14 @@
 				B59C171296483BE1F8C6A2D3 /* Views */,
 			);
 			path = LeKiwiController;
+			sourceTree = "<group>";
+		};
+		E6ACF4E84742F75618672744 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				8AF560980656B903478B1339 /* lerobot */,
+			);
+			path = src;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -251,11 +251,9 @@
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					2D256620E3D77B71853DCB84 = {
-						DevelopmentTeam = L6YHMZPSYT;
 						ProvisioningStyle = Automatic;
 					};
 					C55C7A9868FB1EF5AC85A1AB = {
-						DevelopmentTeam = L6YHMZPSYT;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -288,8 +286,8 @@
 				93F54EEC162044AD98E2FDC9 /* Assets.xcassets in Resources */,
 				11A311FAADBEDEE59FABB1D7 /* LaunchScreen.storyboard in Resources */,
 				261A52925E4530E0A10AF910 /* Twin in Resources */,
-				6C519DEB022D5CF2B9129D36 /* lekiwi_3d.bundle.js in Resources */,
-				8D328B0A6F94B4E81596E595 /* models in Resources */,
+				776D4D8B36DF954E1CE8EB98 /* lekiwi_3d.bundle.js in Resources */,
+				C1BAFCB224ED67F9A7B8E233 /* models in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -370,7 +368,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = L6YHMZPSYT;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -405,7 +402,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.raunaqnaidu.lekiwi;
+				PRODUCT_BUNDLE_IDENTIFIER = io.lekiwi.controller;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -448,7 +445,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = L6YHMZPSYT;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -488,7 +484,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.raunaqnaidu.lekiwi.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = io.lekiwi.controller.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LeKiwiController.app/LeKiwiController";
@@ -507,7 +503,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.raunaqnaidu.lekiwi;
+				PRODUCT_BUNDLE_IDENTIFIER = io.lekiwi.controller;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -524,7 +520,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.raunaqnaidu.lekiwi.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = io.lekiwi.controller.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LeKiwiController.app/LeKiwiController";

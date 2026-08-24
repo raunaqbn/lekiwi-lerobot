@@ -1,0 +1,6 @@
+.hyperframes/
+.thumbnails/
+snapshots/
+renders/
+*.mp4
+*.webm

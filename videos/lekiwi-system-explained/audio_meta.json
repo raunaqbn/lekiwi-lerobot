@@ -1,0 +1,1848 @@
+{
+  "bgm": {
+    "path": "assets/bgm/track.loop.mp3",
+    "volume": 0.12,
+    "query": "restrained technical pulse, precise and low-energy",
+    "duration_s": 102
+  },
+  "bgm_pending": false,
+  "voices": [
+    {
+      "frame": 1,
+      "path": "assets/voice/01.mp3",
+      "duration_s": 12.278,
+      "words": [
+        {
+          "id": "w0",
+          "text": "A",
+          "start": 0.179,
+          "end": 0.239
+        },
+        {
+          "id": "w1",
+          "text": "robot",
+          "start": 0.28,
+          "end": 0.699
+        },
+        {
+          "id": "w2",
+          "text": "can",
+          "start": 0.74,
+          "end": 0.879
+        },
+        {
+          "id": "w3",
+          "text": "be",
+          "start": 0.899,
+          "end": 1.059
+        },
+        {
+          "id": "w4",
+          "text": "online",
+          "start": 1.139,
+          "end": 1.579
+        },
+        {
+          "id": "w5",
+          "text": "while",
+          "start": 1.659,
+          "end": 1.799
+        },
+        {
+          "id": "w6",
+          "text": "its",
+          "start": 1.839,
+          "end": 2.019
+        },
+        {
+          "id": "w7",
+          "text": "commands",
+          "start": 2.039,
+          "end": 2.379
+        },
+        {
+          "id": "w8",
+          "text": "are",
+          "start": 2.419,
+          "end": 2.559
+        },
+        {
+          "id": "w9",
+          "text": "idle,",
+          "start": 2.659,
+          "end": 2.899
+        },
+        {
+          "id": "w10",
+          "text": "powered",
+          "start": 3.339,
+          "end": 3.679
+        },
+        {
+          "id": "w11",
+          "text": "while",
+          "start": 3.74,
+          "end": 3.879
+        },
+        {
+          "id": "w12",
+          "text": "one",
+          "start": 3.939,
+          "end": 4.059
+        },
+        {
+          "id": "w13",
+          "text": "bus",
+          "start": 4.119,
+          "end": 4.319
+        },
+        {
+          "id": "w14",
+          "text": "is",
+          "start": 4.36,
+          "end": 4.48
+        },
+        {
+          "id": "w15",
+          "text": "dark,",
+          "start": 4.539,
+          "end": 4.839
+        },
+        {
+          "id": "w16",
+          "text": "and",
+          "start": 5.279,
+          "end": 5.42
+        },
+        {
+          "id": "w17",
+          "text": "connected",
+          "start": 5.46,
+          "end": 5.92
+        },
+        {
+          "id": "w18",
+          "text": "while",
+          "start": 5.96,
+          "end": 6.099
+        },
+        {
+          "id": "w19",
+          "text": "the",
+          "start": 6.119,
+          "end": 6.219
+        },
+        {
+          "id": "w20",
+          "text": "operator",
+          "start": 6.299,
+          "end": 6.759
+        },
+        {
+          "id": "w21",
+          "text": "is",
+          "start": 6.799,
+          "end": 6.919
+        },
+        {
+          "id": "w22",
+          "text": "looking",
+          "start": 6.96,
+          "end": 7.199
+        },
+        {
+          "id": "w23",
+          "text": "at",
+          "start": 7.199,
+          "end": 7.299
+        },
+        {
+          "id": "w24",
+          "text": "the",
+          "start": 7.319,
+          "end": 7.399
+        },
+        {
+          "id": "w25",
+          "text": "wrong",
+          "start": 7.44,
+          "end": 7.619
+        },
+        {
+          "id": "w26",
+          "text": "voltage.",
+          "start": 7.679,
+          "end": 8.199
+        },
+        {
+          "id": "w27",
+          "text": "Good",
+          "start": 8.88,
+          "end": 9.039
+        },
+        {
+          "id": "w28",
+          "text": "diagnostics",
+          "start": 9.119,
+          "end": 9.939
+        },
+        {
+          "id": "w29",
+          "text": "must",
+          "start": 10.039,
+          "end": 10.26
+        },
+        {
+          "id": "w30",
+          "text": "say",
+          "start": 10.359,
+          "end": 10.579
+        },
+        {
+          "id": "w31",
+          "text": "what",
+          "start": 10.619,
+          "end": 10.739
+        },
+        {
+          "id": "w32",
+          "text": "was",
+          "start": 10.76,
+          "end": 10.96
+        },
+        {
+          "id": "w33",
+          "text": "actually",
+          "start": 11.059,
+          "end": 11.46
+        },
+        {
+          "id": "w34",
+          "text": "observed.",
+          "start": 11.479,
+          "end": 12.059
+        }
+      ]
+    },
+    {
+      "frame": 2,
+      "path": "assets/voice/02.mp3",
+      "duration_s": 16.065,
+      "words": [
+        {
+          "id": "w0",
+          "text": "LeKiwi",
+          "start": 0.159,
+          "end": 0.759
+        },
+        {
+          "id": "w1",
+          "text": "solves",
+          "start": 0.779,
+          "end": 1.1
+        },
+        {
+          "id": "w2",
+          "text": "that",
+          "start": 1.179,
+          "end": 1.419
+        },
+        {
+          "id": "w3",
+          "text": "with",
+          "start": 1.559,
+          "end": 1.699
+        },
+        {
+          "id": "w4",
+          "text": "one",
+          "start": 1.839,
+          "end": 2.039
+        },
+        {
+          "id": "w5",
+          "text": "rule:",
+          "start": 2.139,
+          "end": 2.44
+        },
+        {
+          "id": "w6",
+          "text": "one",
+          "start": 3.119,
+          "end": 3.279
+        },
+        {
+          "id": "w7",
+          "text": "process",
+          "start": 3.359,
+          "end": 3.879
+        },
+        {
+          "id": "w8",
+          "text": "owns",
+          "start": 4.019,
+          "end": 4.279
+        },
+        {
+          "id": "w9",
+          "text": "each",
+          "start": 4.48,
+          "end": 4.639
+        },
+        {
+          "id": "w10",
+          "text": "serial",
+          "start": 4.759,
+          "end": 5.099
+        },
+        {
+          "id": "w11",
+          "text": "bus.",
+          "start": 5.199,
+          "end": 5.579
+        },
+        {
+          "id": "w12",
+          "text": "The",
+          "start": 6.199,
+          "end": 6.279
+        },
+        {
+          "id": "w13",
+          "text": "leader",
+          "start": 6.339,
+          "end": 6.559
+        },
+        {
+          "id": "w14",
+          "text": "computer",
+          "start": 6.659,
+          "end": 7.079
+        },
+        {
+          "id": "w15",
+          "text": "samples",
+          "start": 7.219,
+          "end": 7.579
+        },
+        {
+          "id": "w16",
+          "text": "six",
+          "start": 7.659,
+          "end": 7.879
+        },
+        {
+          "id": "w17",
+          "text": "motors.",
+          "start": 7.98,
+          "end": 8.439
+        },
+        {
+          "id": "w18",
+          "text": "The",
+          "start": 8.96,
+          "end": 9.039
+        },
+        {
+          "id": "w19",
+          "text": "Raspberry",
+          "start": 9.099,
+          "end": 9.559
+        },
+        {
+          "id": "w20",
+          "text": "Pi",
+          "start": 9.679,
+          "end": 9.979
+        },
+        {
+          "id": "w21",
+          "text": "owns",
+          "start": 10.079,
+          "end": 10.279
+        },
+        {
+          "id": "w22",
+          "text": "nine",
+          "start": 10.38,
+          "end": 10.599
+        },
+        {
+          "id": "w23",
+          "text": "follower",
+          "start": 10.739,
+          "end": 11.059
+        },
+        {
+          "id": "w24",
+          "text": "motors",
+          "start": 11.119,
+          "end": 11.599
+        },
+        {
+          "id": "w25",
+          "text": "and",
+          "start": 11.659,
+          "end": 11.739
+        },
+        {
+          "id": "w26",
+          "text": "the",
+          "start": 11.779,
+          "end": 11.859
+        },
+        {
+          "id": "w27",
+          "text": "cameras.",
+          "start": 11.939,
+          "end": 12.46
+        },
+        {
+          "id": "w28",
+          "text": "Every",
+          "start": 12.88,
+          "end": 13.079
+        },
+        {
+          "id": "w29",
+          "text": "web",
+          "start": 13.199,
+          "end": 13.34
+        },
+        {
+          "id": "w30",
+          "text": "request",
+          "start": 13.399,
+          "end": 13.799
+        },
+        {
+          "id": "w31",
+          "text": "reads",
+          "start": 13.859,
+          "end": 14.039
+        },
+        {
+          "id": "w32",
+          "text": "an",
+          "start": 14.059,
+          "end": 14.119
+        },
+        {
+          "id": "w33",
+          "text": "immutable",
+          "start": 14.159,
+          "end": 14.639
+        },
+        {
+          "id": "w34",
+          "text": "cached",
+          "start": 14.699,
+          "end": 15.059
+        },
+        {
+          "id": "w35",
+          "text": "snapshot.",
+          "start": 15.179,
+          "end": 15.759
+        }
+      ]
+    },
+    {
+      "frame": 3,
+      "path": "assets/voice/03.mp3",
+      "duration_s": 17.633,
+      "words": [
+        {
+          "id": "w0",
+          "text": "That",
+          "start": 0.239,
+          "end": 0.439
+        },
+        {
+          "id": "w1",
+          "text": "cache",
+          "start": 0.539,
+          "end": 0.959
+        },
+        {
+          "id": "w2",
+          "text": "keeps",
+          "start": 1,
+          "end": 1.279
+        },
+        {
+          "id": "w3",
+          "text": "sources",
+          "start": 1.36,
+          "end": 1.799
+        },
+        {
+          "id": "w4",
+          "text": "separate.",
+          "start": 1.879,
+          "end": 2.319
+        },
+        {
+          "id": "w5",
+          "text": "Six",
+          "start": 2.899,
+          "end": 3.159
+        },
+        {
+          "id": "w6",
+          "text": "leader",
+          "start": 3.22,
+          "end": 3.439
+        },
+        {
+          "id": "w7",
+          "text": "servos",
+          "start": 3.579,
+          "end": 4.059
+        },
+        {
+          "id": "w8",
+          "text": "at",
+          "start": 4.099,
+          "end": 4.159
+        },
+        {
+          "id": "w9",
+          "text": "about",
+          "start": 4.219,
+          "end": 4.42
+        },
+        {
+          "id": "w10",
+          "text": "five",
+          "start": 4.559,
+          "end": 4.719
+        },
+        {
+          "id": "w11",
+          "text": "volts",
+          "start": 4.859,
+          "end": 5.179
+        },
+        {
+          "id": "w12",
+          "text": "can",
+          "start": 5.239,
+          "end": 5.359
+        },
+        {
+          "id": "w13",
+          "text": "be",
+          "start": 5.4,
+          "end": 5.44
+        },
+        {
+          "id": "w14",
+          "text": "healthy",
+          "start": 5.559,
+          "end": 5.96
+        },
+        {
+          "id": "w15",
+          "text": "while",
+          "start": 6.359,
+          "end": 6.46
+        },
+        {
+          "id": "w16",
+          "text": "the",
+          "start": 6.5,
+          "end": 6.579
+        },
+        {
+          "id": "w17",
+          "text": "follower",
+          "start": 6.659,
+          "end": 7.059
+        },
+        {
+          "id": "w18",
+          "text": "reports",
+          "start": 7.099,
+          "end": 7.559
+        },
+        {
+          "id": "w19",
+          "text": "a",
+          "start": 7.599,
+          "end": 7.699
+        },
+        {
+          "id": "w20",
+          "text": "three-cell",
+          "start": 7.739,
+          "end": 8.199
+        },
+        {
+          "id": "w21",
+          "text": "rail",
+          "start": 8.319,
+          "end": 8.579
+        },
+        {
+          "id": "w22",
+          "text": "near",
+          "start": 8.639,
+          "end": 8.84
+        },
+        {
+          "id": "w23",
+          "text": "ten",
+          "start": 8.899,
+          "end": 9.079
+        },
+        {
+          "id": "w24",
+          "text": "and",
+          "start": 9.099,
+          "end": 9.179
+        },
+        {
+          "id": "w25",
+          "text": "a",
+          "start": 9.22,
+          "end": 9.279
+        },
+        {
+          "id": "w26",
+          "text": "half.",
+          "start": 9.319,
+          "end": 9.719
+        },
+        {
+          "id": "w27",
+          "text": "Fault,",
+          "start": 10.139,
+          "end": 10.479
+        },
+        {
+          "id": "w28",
+          "text": "unpowered,",
+          "start": 10.92,
+          "end": 11.619
+        },
+        {
+          "id": "w29",
+          "text": "offline,",
+          "start": 12.079,
+          "end": 12.699
+        },
+        {
+          "id": "w30",
+          "text": "and",
+          "start": 13.119,
+          "end": 13.22
+        },
+        {
+          "id": "w31",
+          "text": "not",
+          "start": 13.319,
+          "end": 13.559
+        },
+        {
+          "id": "w32",
+          "text": "applicable",
+          "start": 13.659,
+          "end": 14.239
+        },
+        {
+          "id": "w33",
+          "text": "are",
+          "start": 14.42,
+          "end": 14.579
+        },
+        {
+          "id": "w34",
+          "text": "different",
+          "start": 14.639,
+          "end": 14.939
+        },
+        {
+          "id": "w35",
+          "text": "diagnoses—not",
+          "start": 15.019,
+          "end": 16.079
+        },
+        {
+          "id": "w36",
+          "text": "different",
+          "start": 16.18,
+          "end": 16.459
+        },
+        {
+          "id": "w37",
+          "text": "shades",
+          "start": 16.579,
+          "end": 16.859
+        },
+        {
+          "id": "w38",
+          "text": "of",
+          "start": 16.899,
+          "end": 17
+        },
+        {
+          "id": "w39",
+          "text": "red.",
+          "start": 17.079,
+          "end": 17.359
+        }
+      ]
+    },
+    {
+      "frame": 4,
+      "path": "assets/voice/04.mp3",
+      "duration_s": 17.398,
+      "words": [
+        {
+          "id": "w0",
+          "text": "Battery",
+          "start": 0.14,
+          "end": 0.5
+        },
+        {
+          "id": "w1",
+          "text": "state",
+          "start": 0.599,
+          "end": 0.859
+        },
+        {
+          "id": "w2",
+          "text": "is",
+          "start": 0.899,
+          "end": 1
+        },
+        {
+          "id": "w3",
+          "text": "an",
+          "start": 1.039,
+          "end": 1.159
+        },
+        {
+          "id": "w4",
+          "text": "estimate,",
+          "start": 1.22,
+          "end": 1.62
+        },
+        {
+          "id": "w5",
+          "text": "not",
+          "start": 1.979,
+          "end": 2.159
+        },
+        {
+          "id": "w6",
+          "text": "a",
+          "start": 2.22,
+          "end": 2.24
+        },
+        {
+          "id": "w7",
+          "text": "stopwatch.",
+          "start": 2.319,
+          "end": 2.98
+        },
+        {
+          "id": "w8",
+          "text": "The",
+          "start": 3.399,
+          "end": 3.459
+        },
+        {
+          "id": "w9",
+          "text": "dashboard",
+          "start": 3.519,
+          "end": 4.039
+        },
+        {
+          "id": "w10",
+          "text": "takes",
+          "start": 4.099,
+          "end": 4.339
+        },
+        {
+          "id": "w11",
+          "text": "the",
+          "start": 4.38,
+          "end": 4.5
+        },
+        {
+          "id": "w12",
+          "text": "median",
+          "start": 4.539,
+          "end": 4.899
+        },
+        {
+          "id": "w13",
+          "text": "of",
+          "start": 4.96,
+          "end": 5.039
+        },
+        {
+          "id": "w14",
+          "text": "readable",
+          "start": 5.119,
+          "end": 5.42
+        },
+        {
+          "id": "w15",
+          "text": "follower",
+          "start": 5.559,
+          "end": 5.859
+        },
+        {
+          "id": "w16",
+          "text": "voltages",
+          "start": 5.98,
+          "end": 6.48
+        },
+        {
+          "id": "w17",
+          "text": "and",
+          "start": 6.799,
+          "end": 6.92
+        },
+        {
+          "id": "w18",
+          "text": "maps",
+          "start": 6.96,
+          "end": 7.199
+        },
+        {
+          "id": "w19",
+          "text": "it",
+          "start": 7.239,
+          "end": 7.339
+        },
+        {
+          "id": "w20",
+          "text": "to",
+          "start": 7.359,
+          "end": 7.48
+        },
+        {
+          "id": "w21",
+          "text": "a",
+          "start": 7.519,
+          "end": 7.579
+        },
+        {
+          "id": "w22",
+          "text": "deliberately",
+          "start": 7.639,
+          "end": 8.199
+        },
+        {
+          "id": "w23",
+          "text": "wide",
+          "start": 8.319,
+          "end": 8.679
+        },
+        {
+          "id": "w24",
+          "text": "three-cell",
+          "start": 8.72,
+          "end": 9.22
+        },
+        {
+          "id": "w25",
+          "text": "confidence",
+          "start": 9.3,
+          "end": 9.76
+        },
+        {
+          "id": "w26",
+          "text": "band.",
+          "start": 9.859,
+          "end": 10.179
+        },
+        {
+          "id": "w27",
+          "text": "Motor",
+          "start": 10.559,
+          "end": 10.76
+        },
+        {
+          "id": "w28",
+          "text": "calibration",
+          "start": 10.859,
+          "end": 11.42
+        },
+        {
+          "id": "w29",
+          "text": "maps",
+          "start": 11.519,
+          "end": 11.779
+        },
+        {
+          "id": "w30",
+          "text": "position;",
+          "start": 11.859,
+          "end": 12.34
+        },
+        {
+          "id": "w31",
+          "text": "it",
+          "start": 12.84,
+          "end": 12.92
+        },
+        {
+          "id": "w32",
+          "text": "cannot",
+          "start": 12.96,
+          "end": 13.199
+        },
+        {
+          "id": "w33",
+          "text": "reveal",
+          "start": 13.239,
+          "end": 13.579
+        },
+        {
+          "id": "w34",
+          "text": "chemistry,",
+          "start": 13.619,
+          "end": 14.159
+        },
+        {
+          "id": "w35",
+          "text": "load",
+          "start": 14.519,
+          "end": 14.779
+        },
+        {
+          "id": "w36",
+          "text": "sag,",
+          "start": 14.839,
+          "end": 15.139
+        },
+        {
+          "id": "w37",
+          "text": "aging,",
+          "start": 15.42,
+          "end": 15.8
+        },
+        {
+          "id": "w38",
+          "text": "or",
+          "start": 16.02,
+          "end": 16.12
+        },
+        {
+          "id": "w39",
+          "text": "remaining",
+          "start": 16.199,
+          "end": 16.559
+        },
+        {
+          "id": "w40",
+          "text": "runtime.",
+          "start": 16.639,
+          "end": 17.119
+        }
+      ]
+    },
+    {
+      "frame": 5,
+      "path": "assets/voice/05.mp3",
+      "duration_s": 20.506,
+      "words": [
+        {
+          "id": "w0",
+          "text": "The",
+          "start": 0.199,
+          "end": 0.319
+        },
+        {
+          "id": "w1",
+          "text": "same",
+          "start": 0.359,
+          "end": 0.62
+        },
+        {
+          "id": "w2",
+          "text": "calibrated",
+          "start": 0.74,
+          "end": 1.24
+        },
+        {
+          "id": "w3",
+          "text": "positions",
+          "start": 1.299,
+          "end": 1.839
+        },
+        {
+          "id": "w4",
+          "text": "drive",
+          "start": 1.879,
+          "end": 2.139
+        },
+        {
+          "id": "w5",
+          "text": "a",
+          "start": 2.18,
+          "end": 2.24
+        },
+        {
+          "id": "w6",
+          "text": "clickable",
+          "start": 2.279,
+          "end": 2.72
+        },
+        {
+          "id": "w7",
+          "text": "Three.js",
+          "start": 2.879,
+          "end": 3.939
+        },
+        {
+          "id": "w8",
+          "text": "twin",
+          "start": 4.079,
+          "end": 4.42
+        },
+        {
+          "id": "w9",
+          "text": "built",
+          "start": 4.819,
+          "end": 4.98
+        },
+        {
+          "id": "w10",
+          "text": "from",
+          "start": 5.059,
+          "end": 5.179
+        },
+        {
+          "id": "w11",
+          "text": "the",
+          "start": 5.199,
+          "end": 5.259
+        },
+        {
+          "id": "w12",
+          "text": "LeKiwi",
+          "start": 5.299,
+          "end": 5.819
+        },
+        {
+          "id": "w13",
+          "text": "URDF",
+          "start": 5.96,
+          "end": 6.639
+        },
+        {
+          "id": "w14",
+          "text": "and",
+          "start": 6.699,
+          "end": 6.779
+        },
+        {
+          "id": "w15",
+          "text": "CAD",
+          "start": 6.879,
+          "end": 7.159
+        },
+        {
+          "id": "w16",
+          "text": "meshes.",
+          "start": 7.219,
+          "end": 7.739
+        },
+        {
+          "id": "w17",
+          "text": "But",
+          "start": 8.38,
+          "end": 8.46
+        },
+        {
+          "id": "w18",
+          "text": "browser",
+          "start": 8.559,
+          "end": 8.92
+        },
+        {
+          "id": "w19",
+          "text": "arm",
+          "start": 9,
+          "end": 9.179
+        },
+        {
+          "id": "w20",
+          "text": "mode",
+          "start": 9.26,
+          "end": 9.46
+        },
+        {
+          "id": "w21",
+          "text": "is",
+          "start": 9.519,
+          "end": 9.619
+        },
+        {
+          "id": "w22",
+          "text": "active",
+          "start": 9.8,
+          "end": 10.159
+        },
+        {
+          "id": "w23",
+          "text": "control:",
+          "start": 10.199,
+          "end": 10.739
+        },
+        {
+          "id": "w24",
+          "text": "it",
+          "start": 11.179,
+          "end": 11.239
+        },
+        {
+          "id": "w25",
+          "text": "replaces",
+          "start": 11.3,
+          "end": 11.8
+        },
+        {
+          "id": "w26",
+          "text": "manual",
+          "start": 11.899,
+          "end": 12.259
+        },
+        {
+          "id": "w27",
+          "text": "leader",
+          "start": 12.3,
+          "end": 12.539
+        },
+        {
+          "id": "w28",
+          "text": "goals",
+          "start": 12.579,
+          "end": 12.939
+        },
+        {
+          "id": "w29",
+          "text": "with",
+          "start": 12.979,
+          "end": 13.099
+        },
+        {
+          "id": "w30",
+          "text": "cached",
+          "start": 13.199,
+          "end": 13.579
+        },
+        {
+          "id": "w31",
+          "text": "hold",
+          "start": 13.659,
+          "end": 13.96
+        },
+        {
+          "id": "w32",
+          "text": "or",
+          "start": 14.019,
+          "end": 14.079
+        },
+        {
+          "id": "w33",
+          "text": "jog",
+          "start": 14.199,
+          "end": 14.46
+        },
+        {
+          "id": "w34",
+          "text": "targets.",
+          "start": 14.519,
+          "end": 15.099
+        },
+        {
+          "id": "w35",
+          "text": "Press",
+          "start": 15.46,
+          "end": 15.839
+        },
+        {
+          "id": "w36",
+          "text": "Stop",
+          "start": 16.079,
+          "end": 16.42
+        },
+        {
+          "id": "w37",
+          "text": "and",
+          "start": 16.479,
+          "end": 16.559
+        },
+        {
+          "id": "w38",
+          "text": "release",
+          "start": 16.619,
+          "end": 16.959
+        },
+        {
+          "id": "w39",
+          "text": "takeover",
+          "start": 17.059,
+          "end": 17.559
+        },
+        {
+          "id": "w40",
+          "text": "before",
+          "start": 17.879,
+          "end": 18.119
+        },
+        {
+          "id": "w41",
+          "text": "expecting",
+          "start": 18.219,
+          "end": 18.659
+        },
+        {
+          "id": "w42",
+          "text": "the",
+          "start": 18.699,
+          "end": 18.76
+        },
+        {
+          "id": "w43",
+          "text": "leader",
+          "start": 18.84,
+          "end": 19.139
+        },
+        {
+          "id": "w44",
+          "text": "to",
+          "start": 19.42,
+          "end": 19.459
+        },
+        {
+          "id": "w45",
+          "text": "drive",
+          "start": 19.559,
+          "end": 19.799
+        },
+        {
+          "id": "w46",
+          "text": "again.",
+          "start": 19.879,
+          "end": 20.199
+        }
+      ]
+    },
+    {
+      "frame": 6,
+      "path": "assets/voice/06.mp3",
+      "duration_s": 21.211,
+      "words": [
+        {
+          "id": "w0",
+          "text": "Deployment",
+          "start": 0.119,
+          "end": 0.659
+        },
+        {
+          "id": "w1",
+          "text": "preserves",
+          "start": 0.799,
+          "end": 1.299
+        },
+        {
+          "id": "w2",
+          "text": "that",
+          "start": 1.399,
+          "end": 1.519
+        },
+        {
+          "id": "w3",
+          "text": "boundary.",
+          "start": 1.659,
+          "end": 2.139
+        },
+        {
+          "id": "w4",
+          "text": "Systemd",
+          "start": 2.819,
+          "end": 3.339
+        },
+        {
+          "id": "w5",
+          "text": "keeps",
+          "start": 3.399,
+          "end": 3.659
+        },
+        {
+          "id": "w6",
+          "text": "the",
+          "start": 3.72,
+          "end": 3.779
+        },
+        {
+          "id": "w7",
+          "text": "owner",
+          "start": 3.879,
+          "end": 4.099
+        },
+        {
+          "id": "w8",
+          "text": "loop",
+          "start": 4.199,
+          "end": 4.36
+        },
+        {
+          "id": "w9",
+          "text": "beside",
+          "start": 4.4,
+          "end": 4.839
+        },
+        {
+          "id": "w10",
+          "text": "USB",
+          "start": 5.039,
+          "end": 5.519
+        },
+        {
+          "id": "w11",
+          "text": "and",
+          "start": 5.559,
+          "end": 5.639
+        },
+        {
+          "id": "w12",
+          "text": "cameras.",
+          "start": 5.759,
+          "end": 6.319
+        },
+        {
+          "id": "w13",
+          "text": "Cloudflare",
+          "start": 6.98,
+          "end": 7.539
+        },
+        {
+          "id": "w14",
+          "text": "Access",
+          "start": 7.639,
+          "end": 8.179
+        },
+        {
+          "id": "w15",
+          "text": "and",
+          "start": 8.22,
+          "end": 8.3
+        },
+        {
+          "id": "w16",
+          "text": "an",
+          "start": 8.34,
+          "end": 8.399
+        },
+        {
+          "id": "w17",
+          "text": "outbound",
+          "start": 8.539,
+          "end": 8.899
+        },
+        {
+          "id": "w18",
+          "text": "Tunnel",
+          "start": 9.019,
+          "end": 9.34
+        },
+        {
+          "id": "w19",
+          "text": "can",
+          "start": 9.399,
+          "end": 9.5
+        },
+        {
+          "id": "w20",
+          "text": "protect",
+          "start": 9.559,
+          "end": 9.96
+        },
+        {
+          "id": "w21",
+          "text": "the",
+          "start": 10,
+          "end": 10.079
+        },
+        {
+          "id": "w22",
+          "text": "cached",
+          "start": 10.159,
+          "end": 10.559
+        },
+        {
+          "id": "w23",
+          "text": "dashboard.",
+          "start": 10.639,
+          "end": 11.219
+        },
+        {
+          "id": "w24",
+          "text": "Vercel,",
+          "start": 11.679,
+          "end": 12.34
+        },
+        {
+          "id": "w25",
+          "text": "Workers,",
+          "start": 12.819,
+          "end": 13.34
+        },
+        {
+          "id": "w26",
+          "text": "or",
+          "start": 13.519,
+          "end": 13.579
+        },
+        {
+          "id": "w27",
+          "text": "GitHub",
+          "start": 13.759,
+          "end": 14.159
+        },
+        {
+          "id": "w28",
+          "text": "Pages",
+          "start": 14.219,
+          "end": 14.679
+        },
+        {
+          "id": "w29",
+          "text": "host",
+          "start": 14.799,
+          "end": 15.039
+        },
+        {
+          "id": "w30",
+          "text": "the",
+          "start": 15.079,
+          "end": 15.14
+        },
+        {
+          "id": "w31",
+          "text": "guide—not",
+          "start": 15.239,
+          "end": 15.819
+        },
+        {
+          "id": "w32",
+          "text": "the",
+          "start": 15.88,
+          "end": 15.92
+        },
+        {
+          "id": "w33",
+          "text": "motor",
+          "start": 16,
+          "end": 16.279
+        },
+        {
+          "id": "w34",
+          "text": "loop.",
+          "start": 16.319,
+          "end": 16.579
+        },
+        {
+          "id": "w35",
+          "text": "Serverless",
+          "start": 17.18,
+          "end": 17.639
+        },
+        {
+          "id": "w36",
+          "text": "has",
+          "start": 17.699,
+          "end": 17.86
+        },
+        {
+          "id": "w37",
+          "text": "no",
+          "start": 17.94,
+          "end": 18.059
+        },
+        {
+          "id": "w38",
+          "text": "serial",
+          "start": 18.199,
+          "end": 18.5
+        },
+        {
+          "id": "w39",
+          "text": "bus",
+          "start": 18.639,
+          "end": 18.959
+        },
+        {
+          "id": "w40",
+          "text": "and",
+          "start": 19.279,
+          "end": 19.42
+        },
+        {
+          "id": "w41",
+          "text": "no",
+          "start": 19.479,
+          "end": 19.6
+        },
+        {
+          "id": "w42",
+          "text": "real-time",
+          "start": 19.739,
+          "end": 20.219
+        },
+        {
+          "id": "w43",
+          "text": "guarantee.",
+          "start": 20.299,
+          "end": 20.899
+        }
+      ]
+    },
+    {
+      "frame": 7,
+      "path": "assets/voice/07.mp3",
+      "duration_s": 17.842,
+      "words": [
+        {
+          "id": "w0",
+          "text": "The",
+          "start": 0.199,
+          "end": 0.28
+        },
+        {
+          "id": "w1",
+          "text": "complete",
+          "start": 0.319,
+          "end": 0.719
+        },
+        {
+          "id": "w2",
+          "text": "stack—Python",
+          "start": 0.819,
+          "end": 1.699
+        },
+        {
+          "id": "w3",
+          "text": "host,",
+          "start": 1.779,
+          "end": 2.119
+        },
+        {
+          "id": "w4",
+          "text": "dashboard,",
+          "start": 2.679,
+          "end": 3.259
+        },
+        {
+          "id": "w5",
+          "text": "3D",
+          "start": 3.839,
+          "end": 4.099
+        },
+        {
+          "id": "w6",
+          "text": "assets,",
+          "start": 4.239,
+          "end": 4.719
+        },
+        {
+          "id": "w7",
+          "text": "iOS",
+          "start": 5.339,
+          "end": 5.739
+        },
+        {
+          "id": "w8",
+          "text": "client,",
+          "start": 5.839,
+          "end": 6.199
+        },
+        {
+          "id": "w9",
+          "text": "deployment",
+          "start": 6.5,
+          "end": 6.92
+        },
+        {
+          "id": "w10",
+          "text": "templates,",
+          "start": 7.039,
+          "end": 7.519
+        },
+        {
+          "id": "w11",
+          "text": "tests,",
+          "start": 7.779,
+          "end": 8.26
+        },
+        {
+          "id": "w12",
+          "text": "licenses,",
+          "start": 8.519,
+          "end": 9.119
+        },
+        {
+          "id": "w13",
+          "text": "and",
+          "start": 9.599,
+          "end": 9.679
+        },
+        {
+          "id": "w14",
+          "text": "this",
+          "start": 9.739,
+          "end": 9.92
+        },
+        {
+          "id": "w15",
+          "text": "guide—is",
+          "start": 10,
+          "end": 10.319
+        },
+        {
+          "id": "w16",
+          "text": "open",
+          "start": 10.439,
+          "end": 10.659
+        },
+        {
+          "id": "w17",
+          "text": "under",
+          "start": 10.739,
+          "end": 10.899
+        },
+        {
+          "id": "w18",
+          "text": "Apache",
+          "start": 10.96,
+          "end": 11.46
+        },
+        {
+          "id": "w19",
+          "text": "Two.",
+          "start": 11.519,
+          "end": 11.779
+        },
+        {
+          "id": "w20",
+          "text": "Run",
+          "start": 12.179,
+          "end": 12.319
+        },
+        {
+          "id": "w21",
+          "text": "the",
+          "start": 12.359,
+          "end": 12.439
+        },
+        {
+          "id": "w22",
+          "text": "demo,",
+          "start": 12.5,
+          "end": 12.859
+        },
+        {
+          "id": "w23",
+          "text": "inspect",
+          "start": 13.119,
+          "end": 13.559
+        },
+        {
+          "id": "w24",
+          "text": "every",
+          "start": 13.679,
+          "end": 13.859
+        },
+        {
+          "id": "w25",
+          "text": "boundary,",
+          "start": 13.96,
+          "end": 14.359
+        },
+        {
+          "id": "w26",
+          "text": "then",
+          "start": 14.819,
+          "end": 14.92
+        },
+        {
+          "id": "w27",
+          "text": "test",
+          "start": 15.039,
+          "end": 15.299
+        },
+        {
+          "id": "w28",
+          "text": "lifted",
+          "start": 15.359,
+          "end": 15.659
+        },
+        {
+          "id": "w29",
+          "text": "with",
+          "start": 15.679,
+          "end": 15.779
+        },
+        {
+          "id": "w30",
+          "text": "a",
+          "start": 15.819,
+          "end": 15.839
+        },
+        {
+          "id": "w31",
+          "text": "physical",
+          "start": 15.96,
+          "end": 16.279
+        },
+        {
+          "id": "w32",
+          "text": "power",
+          "start": 16.399,
+          "end": 16.659
+        },
+        {
+          "id": "w33",
+          "text": "cutoff",
+          "start": 16.719,
+          "end": 17.059
+        },
+        {
+          "id": "w34",
+          "text": "in",
+          "start": 17.119,
+          "end": 17.199
+        },
+        {
+          "id": "w35",
+          "text": "reach.",
+          "start": 17.279,
+          "end": 17.639
+        }
+      ]
+    }
+  ],
+  "sfx": [
+    {
+      "frame": 1,
+      "file": "assets/sfx/relay-click.mp3",
+      "offset_s": 0,
+      "duration_s": 0.264,
+      "volume": 0.35
+    },
+    {
+      "frame": 1,
+      "file": "assets/sfx/low-system-pulse.mp3",
+      "offset_s": 0,
+      "duration_s": 2.407,
+      "volume": 0.35
+    },
+    {
+      "frame": 2,
+      "file": "assets/sfx/connector-seat.mp3",
+      "offset_s": 0,
+      "duration_s": 1.672,
+      "volume": 0.35
+    },
+    {
+      "frame": 2,
+      "file": "assets/sfx/soft-data-ticks.mp3",
+      "offset_s": 0,
+      "duration_s": 0.264,
+      "volume": 0.35
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/ledger-stamp.mp3",
+      "offset_s": 0,
+      "duration_s": 3.855,
+      "volume": 0.35
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/short-register-ticks.mp3",
+      "offset_s": 0,
+      "duration_s": 0.144,
+      "volume": 0.35
+    },
+    {
+      "frame": 4,
+      "file": "assets/sfx/nine-soft-ticks.mp3",
+      "offset_s": 0,
+      "duration_s": 0.264,
+      "volume": 0.35
+    },
+    {
+      "frame": 4,
+      "file": "assets/sfx/band-bloom.mp3",
+      "offset_s": 0,
+      "duration_s": 3.463,
+      "volume": 0.35
+    },
+    {
+      "frame": 5,
+      "file": "assets/sfx/servo-select.mp3",
+      "offset_s": 0,
+      "duration_s": 0.264,
+      "volume": 0.35
+    },
+    {
+      "frame": 5,
+      "file": "assets/sfx/routing-switch.mp3",
+      "offset_s": 0,
+      "duration_s": 0.264,
+      "volume": 0.35
+    },
+    {
+      "frame": 5,
+      "file": "assets/sfx/stop-click.mp3",
+      "offset_s": 0,
+      "duration_s": 0.24,
+      "volume": 0.35
+    },
+    {
+      "frame": 6,
+      "file": "assets/sfx/boundary-draw.mp3",
+      "offset_s": 0,
+      "duration_s": 2.979,
+      "volume": 0.35
+    },
+    {
+      "frame": 6,
+      "file": "assets/sfx/tunnel-whoosh.mp3",
+      "offset_s": 0,
+      "duration_s": 1.834,
+      "volume": 0.35
+    },
+    {
+      "frame": 7,
+      "file": "assets/sfx/file-stack.mp3",
+      "offset_s": 0,
+      "duration_s": 1.79,
+      "volume": 0.35
+    },
+    {
+      "frame": 7,
+      "file": "assets/sfx/key-ticks.mp3",
+      "offset_s": 0,
+      "duration_s": 0.768,
+      "volume": 0.35
+    },
+    {
+      "frame": 7,
+      "file": "assets/sfx/physical-switch.mp3",
+      "offset_s": 0,
+      "duration_s": 0.264,
+      "volume": 0.35
+    }
+  ]
+}

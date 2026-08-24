@@ -1,4 +1,9 @@
-# How to contribute to 🤗 LeRobot
+# How to contribute to LeKiwi Diagnostics + Teleoperation
+
+This repository is a community fork of Hugging Face LeRobot. LeKiwi dashboard,
+teleoperation, iOS, deployment, and documentation changes belong here. General
+LeRobot fixes should normally be proposed upstream at
+https://github.com/huggingface/lerobot first.
 
 Everyone is welcome to contribute, and we value everybody's contribution. Code is not the only way to help the community. Answering questions, helping others, reaching out, and improving the documentation are immensely valuable.
 
@@ -14,7 +19,9 @@ You can contribute in many ways:
 - **Documentation:** Improve examples, guides, and docstrings.
 - **Feedback:** Submit tickets related to bugs or desired new features.
 
-If you are unsure where to start, join our [Discord Channel](https://discord.gg/q8Dzzpym3f).
+For questions specific to this fork, open a GitHub discussion or issue. The
+upstream [LeRobot Discord](https://discord.gg/q8Dzzpym3f) remains useful for
+general hardware and framework questions.
 
 ## Development Setup
 
@@ -25,14 +32,16 @@ To contribute code, you need to set up a development environment.
 Fork the repository on GitHub, then clone your fork:
 
 ```bash
-git clone https://github.com/<your-handle>/lerobot.git
-cd lerobot
+git clone https://github.com/<your-handle>/lekiwi-lerobot.git
+cd lekiwi-lerobot
 git remote add upstream https://github.com/huggingface/lerobot.git
 ```
 
 ### 2. Environment Installation
 
-Please follow our [Installation Guide](https://huggingface.co/docs/lerobot/installation) for the environment setup & installation from source.
+Install with `uv sync --locked --extra test --extra dev --extra lekiwi`. The
+upstream [installation guide](https://huggingface.co/docs/lerobot/installation)
+contains platform-specific prerequisites.
 
 ## Running Tests & Quality Checks
 
@@ -62,25 +71,26 @@ git lfs pull
 Run the full suite (this may require extras installed):
 
 ```bash
-pytest -sv ./tests
+uv run pytest -sv ./tests
 ```
 
 Or run a specific test file during development:
 
 ```bash
-pytest -sv tests/test_specific_feature.py
+uv run pytest -q tests/robots/test_lekiwi_diagnostics.py tests/robots/test_lekiwi_live_diagnostics.py
 ```
 
 ## Submitting Issues & Pull Requests
 
 Use the templates for required fields and examples.
 
-- **Issues:** Follow the [ticket template](https://github.com/huggingface/lerobot/blob/main/.github/ISSUE_TEMPLATE/bug-report.yml).
-- **Pull requests:** Rebase on `upstream/main`, use a descriptive branch (don't work on `main`), run `pre-commit` and tests locally, and follow the [PR template](https://github.com/huggingface/lerobot/blob/main/.github/PULL_REQUEST_TEMPLATE.md).
+- **Issues:** Follow this repository's bug template and include whether the robot was lifted, the leader/follower topology, motor IDs, voltage source, and a redacted state snapshot.
+- **Pull requests:** Branch from this repository's `main`, keep upstream attribution, run focused tests and pre-commit, and describe any physical validation separately from simulated tests.
 
-> [!IMPORTANT]
-> Community Review Policy: To help scale our efforts and foster a collaborative environment, we ask contributors to review at least one other person's open PR before their own receives attention. This shared responsibility multiplies our review capacity and helps everyone's code get merged faster!
+Never include calibration files, Access tokens, tunnel credentials, Wi-Fi
+details, private hostnames, or USB serial numbers from someone else's robot.
+Tests that can move hardware must be opt-in and clearly labeled.
 
-Once you have submitted your PR and completed a peer review, a member of the LeRobot team will review your contribution.
+Maintainers review changes on a best-effort basis. No response-time commitment is implied.
 
 Thank you for contributing to LeRobot!

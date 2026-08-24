@@ -50,6 +50,9 @@ repos:
     hooks:
       - id: typos
         args: [--force-exclude]
+        # XcodeGen emits random hexadecimal PBX identifiers that naturally
+        # contain dictionary words such as CAF/BA; they are not prose.
+        exclude: ^ios/LeKiwiController/LeKiwiController\.xcodeproj/project\.pbxproj$
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.21.0

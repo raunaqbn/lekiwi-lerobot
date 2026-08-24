@@ -11,7 +11,7 @@ struct SettingsView: View {
                     Label(store.connectionMessage, systemImage: store.state.connected ? "checkmark.circle.fill" : "wifi.slash")
                         .foregroundStyle(store.state.connected ? AppPalette.healthy : .secondary)
                 }
-                LabeledContent("Service", value: "robot.offerhack.io")
+                LabeledContent("Service", value: RobotService.host)
                 if let timeout = store.state.control?.deadmanTimeoutSeconds {
                     LabeledContent("Motion timeout", value: "\(Int(timeout * 1_000)) ms")
                 } else if let deadman = store.state.control?.deadmanMs {

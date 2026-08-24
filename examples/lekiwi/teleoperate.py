@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Raunaq's rollback-safe LeKiwi v0.6.1 teleoperation entry point."""
+"""Low-latency LeKiwi teleoperation with the live diagnostics dashboard."""
 
 from __future__ import annotations
 
@@ -11,11 +11,6 @@ import sys
 import termios
 import time
 import tty
-from pathlib import Path
-
-# Constants are resolved at import time, so choose the isolated v0.6.1 cache
-# before importing LeRobot.  Existing user overrides remain authoritative.
-os.environ.setdefault("HF_LEROBOT_HOME", str(Path.home() / ".cache" / "huggingface" / "lerobot-v061"))
 
 import rerun as rr
 import rerun.blueprint as rrb
@@ -34,8 +29,8 @@ from lerobot.teleoperators.so_leader import SO101Leader, SO101LeaderConfig
 from lerobot.utils.visualization_utils import init_rerun, log_rerun_data
 
 FPS = 30
-DEFAULT_PI = "10.0.0.104"
-DEFAULT_LEADER_PORT = "/dev/tty.usbmodem5A7A0555011"
+DEFAULT_PI = os.getenv("LEKIWI_HOST", "lekiwi.local")
+DEFAULT_LEADER_PORT = os.getenv("LEKIWI_LEADER_PORT")
 
 
 class TerminalPulseKeyboard:
@@ -75,8 +70,13 @@ class TerminalPulseKeyboard:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Teleoperate LeKiwi v0.6.1 with live diagnostics")
     parser.add_argument("--pi", default=DEFAULT_PI, help="Raspberry Pi address")
-    parser.add_argument("--leader-port", default=DEFAULT_LEADER_PORT)
-    parser.add_argument("--robot-id", default="anton")
+    parser.add_argument(
+        "--leader-port",
+        default=DEFAULT_LEADER_PORT,
+        required=DEFAULT_LEADER_PORT is None,
+        help="Leader arm serial port (or set LEKIWI_LEADER_PORT)",
+    )
+    parser.add_argument("--robot-id", default=os.getenv("LEKIWI_ROBOT_ID", "lekiwi"))
     parser.add_argument("--dashboard-host", default="127.0.0.1")
     parser.add_argument("--dashboard-port", type=int, default=8090)
     parser.add_argument("--no-rerun", action="store_true")
