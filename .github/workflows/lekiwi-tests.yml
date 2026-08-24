@@ -1,0 +1,51 @@
+name: LeKiwi release tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/lerobot/robots/lekiwi/**"
+      - "tests/robots/test_lekiwi_*.py"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/lekiwi-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/lerobot/robots/lekiwi/**"
+      - "tests/robots/test_lekiwi_*.py"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/lekiwi-tests.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  diagnostics:
+    name: Diagnostics, telemetry, and latency
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+          version: "0.11.30"
+          python-version: "3.12"
+
+      - name: Run LeKiwi tests with the LeKiwi extra
+        run: >-
+          uv run --locked --extra test --extra lekiwi pytest -q
+          tests/robots/test_lekiwi_diagnostics.py
+          tests/robots/test_lekiwi_live_diagnostics.py
+          tests/robots/test_lekiwi_latency_tracing.py

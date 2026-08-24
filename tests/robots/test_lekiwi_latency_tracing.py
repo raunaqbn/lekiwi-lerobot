@@ -5,6 +5,10 @@ import sqlite3
 import time
 from collections import OrderedDict
 
+import pytest
+
+pytest.importorskip("flask")
+
 from lerobot.robots.lekiwi.latency_tracing import (
     TRACE_SCHEMA_VERSION,
     LatencyTraceRecorder,

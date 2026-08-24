@@ -33,10 +33,10 @@ from copy import deepcopy
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from flask import Flask, Response, jsonify, render_template, request, stream_with_context
-from serial.tools import list_ports
+if TYPE_CHECKING:
+    from flask import Flask
 
 
 @dataclass(frozen=True)
@@ -320,6 +320,8 @@ class LeKiwiDiagnostics:
             self.scan_models = {baudrate: dict(self.discovered_models)}
 
     def ports(self) -> list[dict[str, Any]]:
+        from serial.tools import list_ports
+
         ports = [
             {
                 "device": port.device,
@@ -1144,6 +1146,8 @@ class RemoteDiagnosticsProxy:
 def create_app(
     service: LeKiwiDiagnostics | None = None, follower: RemoteDiagnosticsProxy | None = None
 ) -> Flask:
+    from flask import Flask, Response, jsonify, render_template, request, stream_with_context
+
     service = service or LeKiwiDiagnostics()
     follower = follower or RemoteDiagnosticsProxy()
     app = Flask(__name__)

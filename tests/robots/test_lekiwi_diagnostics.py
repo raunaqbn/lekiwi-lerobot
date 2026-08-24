@@ -18,6 +18,10 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
+
+pytest.importorskip("flask")
+
 from lerobot.robots.lekiwi.diagnostics import (
     EXPECTED_MOTORS,
     LeKiwiDiagnostics,

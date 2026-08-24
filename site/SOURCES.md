@@ -8,8 +8,8 @@ The public guide was authored from repository base commit `d963ae5e03aab49fa38a8
 | `SECURITY.md`                                                | `8e5ca0d3be9133205e3bc14f1dcfc2e78cd161a1328ba7df9f590561946d099d` | Threat model and safety language                 |
 | `deploy/README.md`                                           | `3b08166040338928121ab536fec3149d3d923295337ac9fdfa77ed6e99d4608d` | Deployment paths                                 |
 | `docs/source/lekiwi_v061_cutover.md`                         | `b20716725633d1611399e58724d5980050c5f6719360ba2888442abcb0a3de42` | Operator runbook                                 |
-| `src/lerobot/robots/lekiwi/diagnostics.py`                   | `00a19fb08b4d08d47a8e83c804c7ac538b4457ced3d5976ea5a643ae27da5dd5` | Autodetection, profiles, battery estimation, API |
-| `src/lerobot/robots/lekiwi/live_diagnostics.py`              | `0f7c3bf9f7e8acda11c119b3f1c4501407306c80a167ef05573e38b257595cdb` | Cached telemetry, bus leases, control bridge     |
+| `src/lerobot/robots/lekiwi/diagnostics.py`                   | `d2337c42893c1cb56a459bea81267d03d5cfe6270c4711b439090cb827cdb3db` | Autodetection, profiles, battery estimation, API |
+| `src/lerobot/robots/lekiwi/live_diagnostics.py`              | `ae531ca6a6c0baa07b4b630e4977d55eb686328108768a0861310d5cb6535864` | Cached telemetry, bus leases, control bridge     |
 | `src/lerobot/robots/lekiwi/lekiwi_host.py`                   | `8dea8d682a8d70fca5c088bb0a34cd039f8682b637c771fe06515aace8b86c8c` | Pi owner loop and network transport              |
 | `src/lerobot/robots/lekiwi/static/lekiwi_diagnostics.js`     | `3ed80bcb55390cb55719b91befd05b70a43b28987781550491e0810c90c9d159` | Dashboard behavior                               |
 | `src/lerobot/robots/lekiwi/static/lekiwi_3d.js`              | `28deaa9f7e7e37f6a97e96e9bcdc81b8154157fbc254d09dd31d7435945e4981` | Digital twin mapping                             |
