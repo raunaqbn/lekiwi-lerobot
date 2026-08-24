@@ -19,6 +19,27 @@ This repository is an Apache-2.0 fork of [Hugging Face LeRobot](https://github.c
 > [!CAUTION]
 > This software can move physical hardware. Start with the wheels lifted, keep a hand on the physical power cutoff, and never treat browser controls or a network tunnel as an emergency stop.
 
+## What this fork changes from LeRobot
+
+The fork-specific work starts from upstream LeRobot commit
+[`7e241bd6`](https://github.com/huggingface/lerobot/commit/7e241bd630a3719a56157a497ce5d08f244784f1)
+(August 3, 2026). The baseline is also recorded in [`.lekiwi-upstream-commit`](./.lekiwi-upstream-commit).
+See the [complete baseline-to-fork comparison](https://github.com/raunaqbn/lekiwi-lerobot/compare/7e241bd630a3719a56157a497ce5d08f244784f1...main)
+for the exact code diff.
+
+| Area                      | Added or changed in this fork                                                                                                                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Diagnostics               | A new `lerobot-lekiwi-diagnostics` CLI and browser dashboard with automatic bus discovery, remembered connections, source-labeled leader/follower readings, power-state classification, battery estimation, and demo mode. |
+| Motor ownership           | The Pi host and leader process own their serial buses; HTTP/SSE handlers consume cached snapshots instead of opening a second connection to the motors.                                                                    |
+| Teleoperation             | Dashboard camera feeds, dead-man base motion, optional arm takeover/jogging, command/watchdog safeguards, and post-session latency tracing are integrated into the LeKiwi host/client path.                                |
+| 3D inspection             | A clickable Three.js digital twin uses a vendored LeKiwi URDF and CAD meshes, calibration-aware joint poses, health coloring, and optional estimated chassis odometry.                                                     |
+| Native and remote access  | An iOS controller, Cloudflare Access helper Worker, systemd service, Docker image, tunnel example, and static-host deployment guides are included.                                                                         |
+| Quality and documentation | Focused diagnostics/telemetry/latency tests, fork-specific CI, security and contribution guidance, a static field guide, and a self-hosted HTML explainer are added.                                                       |
+
+The broader LeRobot dataset, policy-training, and evaluation stack remains upstream code. This repository is a
+purpose-built LeKiwi fork rather than a replacement for the newest LeRobot `main`; upstream continues to evolve
+after the recorded baseline.
+
 ## What is included
 
 - Automatic Feetech bus discovery with remembered ports and baud rates.
