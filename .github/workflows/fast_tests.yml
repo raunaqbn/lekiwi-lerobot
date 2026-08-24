@@ -62,6 +62,10 @@ jobs:
   # tests gated behind other extras skip automatically.
   fast-pytest-tests:
     name: Fast Pytest Tests
+    # The upstream matrix runs the full LeRobot suite four times across
+    # dependency tiers. This LeKiwi fork uses lekiwi-tests.yml for focused,
+    # fork-safe coverage without consuming upstream-scale CI resources.
+    if: github.repository == 'huggingface/lerobot'
     runs-on: ubuntu-latest
     env:
       MUJOCO_GL: egl
