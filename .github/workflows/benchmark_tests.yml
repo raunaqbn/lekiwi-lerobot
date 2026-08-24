@@ -62,10 +62,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # These jobs require Hugging Face's private GPU runner groups. Community
+  # forks keep the workflow source but skip it instead of reporting false
+  # failures before a runner can start.
   # ── LIBERO ────────────────────────────────────────────────────────────────
   # Isolated image: lerobot[libero] only (hf-libero, dm-control, mujoco chain)
   libero-integration-test:
     name: Libero — build image + 1-episode eval
+    if: github.repository == 'huggingface/lerobot'
     runs-on:
       group: aws-g6-4xlarge-plus
     env:
@@ -224,6 +228,7 @@ jobs:
   # Isolated image: lerobot[metaworld] only (metaworld==3.0.0, mujoco>=3 chain)
   metaworld-integration-test:
     name: MetaWorld — build image + 1-episode eval
+    if: github.repository == 'huggingface/lerobot'
     runs-on:
       group: aws-g6-4xlarge-plus
     env:
@@ -324,6 +329,7 @@ jobs:
   # Requires an NVIDIA GPU runner with CUDA 12.1 drivers.
   robotwin-integration-test:
     name: RoboTwin 2.0 — build image + 1-episode eval
+    if: github.repository == 'huggingface/lerobot'
     runs-on:
       group: aws-g6-4xlarge-plus
     env:
@@ -433,6 +439,7 @@ jobs:
   # `lerobot==0.3.3`, which would shadow this repo's lerobot).
   robocasa-integration-test:
     name: RoboCasa365 — build image + 1-episode eval
+    if: github.repository == 'huggingface/lerobot'
     runs-on:
       group: aws-g6-4xlarge-plus
     env:
@@ -534,6 +541,7 @@ jobs:
   # huggingface/lerobot-gpu, which already ships [libero] as part of [all].
   robocerebra-integration-test:
     name: RoboCerebra — build image + 1-episode eval
+    if: github.repository == 'huggingface/lerobot'
     runs-on:
       group: aws-g6-4xlarge-plus
     env:
@@ -640,6 +648,7 @@ jobs:
   # overrides (robomme can't be a pyproject extra due to numpy<2 pin).
   robomme-integration-test:
     name: RoboMME — build image + 1-episode eval
+    if: github.repository == 'huggingface/lerobot'
     runs-on:
       group: aws-g6-4xlarge-plus
     env:
@@ -745,6 +754,7 @@ jobs:
   # huggingface/lerobot-gpu (see docker/Dockerfile.benchmark.libero_plus).
   libero-plus-integration-test:
     name: LIBERO-plus — build image + 1-episode eval
+    if: github.repository == 'huggingface/lerobot'
     runs-on:
       group: aws-g6-4xlarge-plus
     env:
@@ -852,6 +862,7 @@ jobs:
   # Isolated image: lerobot[vlabench] only (VLABench, mujoco==3.2.2, dm-control chain)
   vlabench-integration-test:
     name: VLABench — build image + 1-episode eval
+    if: github.repository == 'huggingface/lerobot'
     runs-on:
       group: aws-g6-4xlarge-plus
     env:
