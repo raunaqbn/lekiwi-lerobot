@@ -52,6 +52,18 @@ after the recorded baseline.
 - Native iOS controller source and an optional Cloudflare Access authentication Worker.
 - Deployable static documentation for GitHub Pages, Cloudflare Workers/Pages, Vercel, or any static host.
 
+## App preview
+
+### One control deck for the whole robot
+
+![LeKiwi diagnostics control deck showing leader and follower status, camera views, base controls, and follower-arm controls](./media/readme/lekiwi-diagnostics-overview.jpg)
+
+### The physical robot, rendered from its CAD
+
+![LeKiwi diagnostics digital twin showing the rendered robot, follower battery estimate, servo-rail state, selected-motor telemetry, and robot network](./media/readme/lekiwi-diagnostics-digital-twin.jpg)
+
+_Captured from the bundled hardware-free demo. A connected robot uses the same interface with live motor, camera, and pose data._
+
 ## Architecture and hosting boundary
 
 ```text
