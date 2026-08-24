@@ -7,7 +7,6 @@ import argparse
 import shutil
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
 TEMPLATE = ROOT / "src/lerobot/robots/lekiwi/templates/lekiwi_diagnostics.html"
@@ -47,7 +46,7 @@ def build(output: Path) -> None:
         '    <meta property="og:url" content="https://raunaqbn.github.io/lekiwi-lerobot/demo/">\n'
         '    <meta property="og:image" content="https://raunaqbn.github.io/lekiwi-lerobot/media/readme/lekiwi-diagnostics-digital-twin.jpg">\n'
         '    <meta name="twitter:card" content="summary_large_image">\n'
-        '    <title>LeKiwi Diagnostics — Interactive Demo</title>',
+        "    <title>LeKiwi Diagnostics — Interactive Demo</title>",
     )
     html = html.replace(
         '<link rel="stylesheet" href="../static/lekiwi_diagnostics.css">',
@@ -60,15 +59,17 @@ def build(output: Path) -> None:
         '    <script type="module" src="../static/lekiwi_3d.js?v=20260810a"></script>',
     )
     html = html.replace(
-        '<body>',
-        f'''<body>\n    {DIRECTION_CONTRACT}\n    <aside class="demo-rail" aria-label="Interactive preview controls">\n      <div class="demo-rail__copy">\n        <span class="demo-flag">Interactive preview</span>\n        <span><strong>Synthetic telemetry</strong> — safe to explore; no robot is connected.</span>\n      </div>\n      <div class="demo-scenarios" role="group" aria-label="Preview a robot condition">\n        <button type="button" data-demo-scenario="healthy">All healthy</button>\n        <button type="button" data-demo-scenario="wheel" aria-pressed="true">Wheel offline</button>\n        <button type="button" data-demo-scenario="rail">Servo rail off</button>\n      </div>\n      <a class="demo-connect" href="../#connect">Connect your LeKiwi <span aria-hidden="true">→</span></a>\n    </aside>''',
+        "<body>",
+        f"""<body>\n    {DIRECTION_CONTRACT}\n    <aside class="demo-rail" aria-label="Interactive preview controls">\n      <div class="demo-rail__copy">\n        <span class="demo-flag">Interactive preview</span>\n        <span><strong>Synthetic telemetry</strong> — safe to explore; no robot is connected.</span>\n      </div>\n      <div class="demo-scenarios" role="group" aria-label="Preview a robot condition">\n        <button type="button" data-demo-scenario="healthy">All healthy</button>\n        <button type="button" data-demo-scenario="wheel" aria-pressed="true">Wheel offline</button>\n        <button type="button" data-demo-scenario="rail">Servo rail off</button>\n      </div>\n      <a class="demo-connect" href="../#connect">Connect your LeKiwi <span aria-hidden="true">→</span></a>\n    </aside>""",
         1,
     )
-    html = html.replace("See the workspace. Manipulate the robot.", "Preview the workspace. Inspect the robot.")
+    html = html.replace(
+        "See the workspace. Manipulate the robot.", "Preview the workspace. Inspect the robot."
+    )
     html = html.replace(">All healthy</button>", ">All motors healthy</button>")
     transparent_pixel = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
-    html = html.replace('/api/cameras/front/stream', transparent_pixel)
-    html = html.replace('/api/cameras/wrist/stream', transparent_pixel)
+    html = html.replace("/api/cameras/front/stream", transparent_pixel)
+    html = html.replace("/api/cameras/wrist/stream", transparent_pixel)
     (demo_dir / "index.html").write_text(html, encoding="utf-8")
 
 
