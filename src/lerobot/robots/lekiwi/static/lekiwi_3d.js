@@ -261,8 +261,9 @@ function init() {
       stage.dataset.ready = "true";
     };
     const loader = new URDFLoader(manager);
+    const modelUrl = new URL("./models/lekiwi/LeKiwi.urdf?v=20260810a", import.meta.url);
     loader.load(
-      "/static/models/lekiwi/LeKiwi.urdf?v=20260810a",
+      modelUrl.href,
       (loadedRobot) => {
         robot = loadedRobot;
         scene.add(robot);
@@ -288,6 +289,11 @@ function init() {
     resetOdometryButton?.addEventListener("click", async () => {
       resetOdometryButton.disabled = true;
       try {
+        if (window.LEKIWI_HOSTED_DEMO) {
+          latestFollower = window.LEKIWI_HOSTED_DEMO.snapshot().sources.follower;
+          applyTelemetry();
+          return;
+        }
         const response = await fetch("/api/odometry/reset", { method: "POST" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const result = await response.json();

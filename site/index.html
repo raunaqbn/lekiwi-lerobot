@@ -5,9 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="LeKiwi diagnostics, teleoperation, 3D twin, safety, and deployment field guide."
+      content="Understand your LeKiwi before you move it: leader and follower motor health, battery confidence, safe teleoperation, and a clickable 3D twin."
     />
-    <title>LeKiwi Field Guide</title>
+    <link rel="canonical" href="https://raunaqbn.github.io/lekiwi-lerobot/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="LeKiwi Diagnostics + Teleoperation" />
+    <meta property="og:description" content="A local-first motor health monitor, operator deck, and clickable 3D twin for LeKiwi." />
+    <meta property="og:url" content="https://raunaqbn.github.io/lekiwi-lerobot/" />
+    <meta property="og:image" content="https://raunaqbn.github.io/lekiwi-lerobot/media/readme/lekiwi-diagnostics-overview.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="LeKiwi Diagnostics + Teleoperation" />
+    <meta name="twitter:description" content="A local-first motor health monitor, operator deck, and clickable 3D twin for LeKiwi." />
+    <meta name="twitter:image" content="https://raunaqbn.github.io/lekiwi-lerobot/media/readme/lekiwi-diagnostics-overview.jpg" />
+    <title>LeKiwi Diagnostics + Teleoperation</title>
     <style>
       :root {
         --ink: #dff8ef;
@@ -30,9 +40,7 @@
       }
       body {
         margin: 0;
-        background:
-          radial-gradient(1000px 600px at 80% -10%, #123a2f 0, transparent 70%),
-          var(--bg);
+        background: var(--bg);
         color: var(--ink);
         font: 16px/1.6 var(--sans);
       }
@@ -127,6 +135,29 @@
         gap: 0.7rem;
         margin-top: 2rem;
       }
+      .onboarding-path {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        margin: 2.5rem 0 3rem;
+        border: 1px solid var(--line);
+        border-radius: 1rem;
+        overflow: hidden;
+      }
+      .onboarding-step {
+        background: #081411;
+        min-height: 180px;
+        padding: 1.4rem;
+      }
+      .onboarding-step + .onboarding-step { border-left: 1px solid var(--line); }
+      .onboarding-step b {
+        color: var(--lime);
+        display: block;
+        font: 700 0.75rem var(--mono);
+        margin-bottom: 1.8rem;
+      }
+      .onboarding-step h3 { font-size: 1.15rem; margin: 0 0 0.55rem; }
+      .onboarding-step p { color: #9db4ad; font-size: 0.9rem; margin: 0; }
+      .onboarding-step a { display: inline-block; font-weight: 750; margin-top: 1rem; }
       .btn {
         display: inline-flex;
         align-items: center;
@@ -166,7 +197,7 @@
         height: 8px;
         border-radius: 50%;
         background: var(--mint);
-        box-shadow: 0 0 14px var(--mint);
+        border: 2px solid #315e52;
       }
       .screen {
         aspect-ratio: 4/3;
@@ -417,7 +448,7 @@
         display: block;
       }
       .callout {
-        border-left: 4px solid var(--amber);
+        border: 1px solid #715d27;
         background: #211b0c;
         padding: 1rem 1.2rem;
         border-radius: 0.3rem;
@@ -473,6 +504,8 @@
         nav {
           display: none;
         }
+        .onboarding-path { grid-template-columns: 1fr; }
+        .onboarding-step + .onboarding-step { border-left: 0; border-top: 1px solid var(--line); }
       }
       @media (max-width: 500px) {
         .facts {
@@ -492,7 +525,8 @@
       <div class="wrap">
         <div class="brand">LE<span>KIWI</span> / FIELD GUIDE</div>
         <nav>
-          <a href="#system">System</a><a href="#states">States</a
+          <a href="./demo/">Live demo</a><a href="#connect">Connect</a
+          ><a href="#system">System</a><a href="#states">States</a
           ><a href="#battery">Battery</a><a href="#operate">Operate</a
           ><a href="#deploy">Deploy</a><a href="#sources">Sources</a>
         </nav>
@@ -512,9 +546,13 @@
           <div class="actions">
             <a
               class="btn primary"
+              href="./demo/"
+              >Try the live demo →</a
+            ><a
+              class="btn"
               href="https://github.com/raunaqbn/lekiwi-lerobot"
               >View source ↗</a
-            ><a class="btn" href="#quickstart">Run diagnostics</a
+            ><a class="btn" href="#connect">Connect your robot</a
             ><a class="btn" href="./videos/">Watch explainers</a>
           </div>
         </div>
@@ -811,10 +849,33 @@
         </div>
       </section>
 
-      <section id="quickstart">
+      <section id="connect">
         <div class="wrap">
           <div class="eyebrow">04 / Start here</div>
-          <h2>From clone to signal.</h2>
+          <h2>From preview to your robot.</h2>
+          <p class="section-lead">
+            Explore a synthetic robot first, then launch the service on the computer physically connected to your controller. No account and no cloud motor bridge are required.
+          </p>
+          <div class="onboarding-path" aria-label="Three-step LeKiwi onboarding path">
+            <article class="onboarding-step">
+              <b>About 1 minute</b>
+              <h3>1. Learn the state language</h3>
+              <p>Switch between healthy, missing-wheel, and unpowered-rail samples. Click the CAD model to inspect the exact motor.</p>
+              <a href="./demo/">Open interactive preview →</a>
+            </article>
+            <article class="onboarding-step">
+              <b>One local command</b>
+              <h3>2. Launch diagnostics</h3>
+              <p>The first install downloads LeRobot dependencies. Later launches reuse the local environment.</p>
+              <a href="#diagnostics" data-open-tab="diagnostics">Show the command ↓</a>
+            </article>
+            <article class="onboarding-step">
+              <b>Automatic discovery</b>
+              <h3>3. Confirm your bus</h3>
+              <p>Power the controller and servo rail. The app tries remembered hardware, then plausible USB serial devices.</p>
+              <a href="https://github.com/raunaqbn/lekiwi-lerobot#quick-start-diagnostics-only">Read hardware setup ↗</a>
+            </article>
+          </div>
           <div class="tabs" role="tablist">
             <button class="tab" aria-selected="true" data-tab="demo">
               Demo</button
@@ -836,8 +897,13 @@ uv run --extra lekiwi lerobot-lekiwi-diagnostics --demo</pre
               vocabulary.
             </p>
           </div>
-          <div id="diagnostics" class="pane">
+          <div id="diagnostics" class="pane" tabindex="-1">
             <pre>
+# Clone-free launch (Python 3.12 + uv)
+uvx --from 'lerobot[lekiwi] @ git+https://github.com/raunaqbn/lekiwi-lerobot.git@v0.1.0' \
+  lerobot-lekiwi-diagnostics
+
+# Or, from a cloned repository
 uv run --extra lekiwi lerobot-lekiwi-diagnostics
 # explicit form
 uv run --extra lekiwi lerobot-lekiwi-diagnostics \
@@ -1010,8 +1076,10 @@ cached API ── no direct serial access
           document.getElementById("joint-label").textContent = j.dataset.joint;
         }),
       );
-      document.querySelectorAll(".tab").forEach((tab) =>
-        tab.addEventListener("click", () => {
+      function activateTab(name, focusPanel = false) {
+          const tab = document.querySelector(`.tab[data-tab="${name}"]`);
+          const panel = document.getElementById(name);
+          if (!tab || !panel) return;
           document
             .querySelectorAll(".tab")
             .forEach((t) => t.setAttribute("aria-selected", "false"));
@@ -1019,7 +1087,20 @@ cached API ── no direct serial access
             .querySelectorAll(".pane")
             .forEach((p) => p.classList.remove("active"));
           tab.setAttribute("aria-selected", "true");
-          document.getElementById(tab.dataset.tab).classList.add("active");
+          panel.classList.add("active");
+          if (focusPanel) {
+            panel.scrollIntoView({ behavior: "smooth", block: "start" });
+            panel.focus({ preventScroll: true });
+          }
+      }
+      document.querySelectorAll(".tab").forEach((tab) =>
+        tab.addEventListener("click", () => activateTab(tab.dataset.tab)),
+      );
+      document.querySelectorAll("[data-open-tab]").forEach((link) =>
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          activateTab(link.dataset.openTab, true);
+          history.replaceState(null, "", `#${link.dataset.openTab}`);
         }),
       );
     </script>

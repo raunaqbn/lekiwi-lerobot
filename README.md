@@ -12,6 +12,8 @@
 [![Security](https://img.shields.io/badge/robot%20control-local--first-a6ff4d)](./SECURITY.md)
 [![LeRobot](https://img.shields.io/badge/based%20on-LeRobot-f4d35e)](https://github.com/huggingface/lerobot)
 
+[**Try the interactive demo**](https://raunaqbn.github.io/lekiwi-lerobot/demo/) · [Connect your robot](#quick-start-diagnostics-only) · [Field guide](https://raunaqbn.github.io/lekiwi-lerobot/) · [Watch the explainer](https://raunaqbn.github.io/lekiwi-lerobot/videos/)
+
 </div>
 
 This repository is an Apache-2.0 fork of [Hugging Face LeRobot](https://github.com/huggingface/lerobot) with a production-minded LeKiwi operator experience. It keeps the serial bus and motor loop on machines physically connected to the robot while making cached telemetry, camera feeds, controls, and the robot's live pose available through a modern browser dashboard.
@@ -64,6 +66,8 @@ after the recorded baseline.
 
 _Captured from the bundled hardware-free demo. A connected robot uses the same interface with live motor, camera, and pose data._
 
+The [hosted interactive demo](https://raunaqbn.github.io/lekiwi-lerobot/demo/) runs entirely on synthetic telemetry. Switch between a healthy robot, a missing wheel, and an unpowered servo rail, then click the real CAD model to inspect individual motors. It cannot access or move physical hardware.
+
 ## Architecture and hosting boundary
 
 ```text
@@ -84,6 +88,15 @@ Vercel and Cloudflare can host the documentation and browser assets. They **cann
 ## Quick start: diagnostics only
 
 Python 3.12 and `uv` are recommended.
+
+For a clone-free first launch (the initial run downloads LeRobot dependencies):
+
+```bash
+uvx --from 'lerobot[lekiwi] @ git+https://github.com/raunaqbn/lekiwi-lerobot.git@v0.1.0' \
+  lerobot-lekiwi-diagnostics
+```
+
+Or install from a clone for development and teleoperation:
 
 ```bash
 git clone https://github.com/raunaqbn/lekiwi-lerobot.git

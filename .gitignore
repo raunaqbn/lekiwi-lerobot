@@ -140,6 +140,7 @@ ipython_config.py
 docs/_build/
 
 # The LeKiwi public guide is intentionally versioned under /site.
+_site/
 
 # PyBuilder
 .pybuilder/

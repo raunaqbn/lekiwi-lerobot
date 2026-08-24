@@ -1,4 +1,5 @@
 const isFilePreview = window.location.protocol === "file:";
+const hostedDemo = window.LEKIWI_HOSTED_DEMO || null;
 
 const elements = {
   app: document.querySelector("#app"),
@@ -156,6 +157,15 @@ function sourceSummary(source) {
 
 async function loadPorts() {
   elements.refreshPorts.disabled = true;
+  if (hostedDemo) {
+    const option = document.createElement("option");
+    option.value = "SIMULATED /dev/cu.usbmodem-leader";
+    option.label = "Hosted preview · synthetic serial bus";
+    elements.portList.replaceChildren(option);
+    elements.port.value = option.value;
+    elements.refreshPorts.disabled = false;
+    return;
+  }
   try {
     const response = await fetch("/api/ports", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -181,6 +191,10 @@ async function fetchState() {
   if (requestInFlight) return;
   requestInFlight = true;
   try {
+    if (hostedDemo) {
+      render(hostedDemo.snapshot());
+      return;
+    }
     const response = await fetch("/api/state", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const state = await response.json();
@@ -197,6 +211,11 @@ async function fetchState() {
 }
 
 function startStream() {
+  if (hostedDemo) {
+    window.addEventListener("lekiwi-demo-change", fetchState);
+    window.setInterval(fetchState, 900);
+    return;
+  }
   if (eventSource || typeof EventSource === "undefined") return;
   eventSource = new EventSource("/api/stream");
   eventSource.addEventListener("state", (event) => {
@@ -461,6 +480,7 @@ function render(state) {
   const bothConnected = state.connected_sources === 2;
   const hostEmbedded = state.sample_mode === "embedded_host_control_loop";
   const embedded = state.sample_mode === "embedded_control_loop" || hostEmbedded;
+  const preview = state.sample_mode === "hosted_demo";
 
   elements.headerDot.dataset.severity = state.system_overall;
   elements.headerState.textContent = bothConnected
@@ -470,16 +490,18 @@ function render(state) {
       : "Robot sources offline";
 
   elements.connectionIcon.dataset.state = state.connected ? "connected" : state.autodetecting ? "searching" : "attention";
-  elements.connectionTitle.textContent = hostEmbedded ? "Follower owner loop online" : embedded ? "Telemetry embedded in teleoperation" : state.connected ? "Local motor bus connected" : state.autodetecting ? "Finding the leader arm" : "Leader arm is not connected";
+  elements.connectionTitle.textContent = preview ? "Exploring a sample LeKiwi" : hostEmbedded ? "Follower owner loop online" : embedded ? "Telemetry embedded in teleoperation" : state.connected ? "Local motor bus connected" : state.autodetecting ? "Finding the leader arm" : "Leader arm is not connected";
   elements.connectionDetail.textContent = hostEmbedded
     ? "The Raspberry Pi owns the follower bus; browser intent is consumed inside that same safety loop."
     : embedded
     ? "Teleoperation exclusively owns both serial buses; this dashboard only reads cached snapshots."
+    : preview
+    ? "Synthetic leader and follower readings are updating in your browser; connect real hardware through the local service."
     : state.connected
     ? "The Mac USB feed is live; follower telemetry is handled separately through the Pi."
     : "Connect the leader USB adapter or open connection settings to choose it manually.";
-  elements.autodetectButton.hidden = embedded;
-  elements.settings.hidden = embedded;
+  elements.autodetectButton.hidden = embedded || preview;
+  elements.settings.hidden = embedded || preview;
   elements.autodetectButton.disabled = state.connected || state.autodetecting || state.demo;
   elements.disconnectButton.hidden = !state.connected || state.demo;
   elements.connectButton.disabled = state.autodetecting || state.demo;
