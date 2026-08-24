@@ -3,7 +3,13 @@ import Security
 import WebKit
 
 enum RobotService {
-    static let baseURL = URL(string: "https://robot.offerhack.io")!
+    static let baseURL: URL = {
+        let configured = Bundle.main.object(forInfoDictionaryKey: "LeKiwiBaseURL") as? String
+        guard let configured, let url = URL(string: configured), url.scheme == "https" else {
+            preconditionFailure("LeKiwiBaseURL must be an https URL in Info.plist")
+        }
+        return url
+    }()
     static let host = baseURL.host!
 
     static func url(path: String) -> URL {
@@ -50,7 +56,13 @@ enum AccessLoginError: LocalizedError {
 }
 
 enum AccessCallback {
-    static let scheme = "com.raunaqnaidu.lekiwi"
+    static let scheme: String = {
+        guard let configured = Bundle.main.object(forInfoDictionaryKey: "LeKiwiCallbackScheme") as? String,
+              !configured.isEmpty else {
+            preconditionFailure("LeKiwiCallbackScheme must be configured in Info.plist")
+        }
+        return configured
+    }()
 
     static func token(from url: URL, expectedState: String) throws -> String {
         guard url.scheme == scheme, url.host == "access", url.path == "/callback" else {
@@ -73,7 +85,7 @@ enum AccessCallback {
 }
 
 enum AccessTokenStore {
-    private static let service = "com.raunaqnaidu.lekiwi.cloudflare-access"
+    private static let service = "\(Bundle.main.bundleIdentifier ?? "io.lekiwi.controller").cloudflare-access"
     private static let account = "cf-access-token"
 
     static func load() -> String? {
@@ -152,7 +164,7 @@ enum AccessCookieManager {
 
     private static func isAccessCookie(_ cookie: HTTPCookie) -> Bool {
         let domain = cookie.domain.lowercased()
-        return domain.hasSuffix("offerhack.io") || domain.hasSuffix("cloudflareaccess.com")
+        return domain.hasSuffix(RobotService.host.lowercased()) || domain.hasSuffix("cloudflareaccess.com")
     }
 }
 

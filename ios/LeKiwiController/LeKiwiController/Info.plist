@@ -22,10 +22,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.raunaqnaidu.lekiwi.cloudflare-access</string>
+			<string>io.lekiwi.controller.cloudflare-access</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.raunaqnaidu.lekiwi</string>
+				<string>io.lekiwi.controller</string>
 			</array>
 		</dict>
 	</array>
@@ -35,6 +35,10 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LeKiwiBaseURL</key>
+	<string>https://robot.example.com</string>
+	<key>LeKiwiCallbackScheme</key>
+	<string>io.lekiwi.controller</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

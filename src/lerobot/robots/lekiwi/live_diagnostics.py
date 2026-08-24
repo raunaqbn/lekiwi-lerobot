@@ -22,10 +22,11 @@ from copy import deepcopy
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
-from flask import Flask, Response, jsonify, render_template, request, stream_with_context
-from werkzeug.serving import BaseWSGIServer, make_server
+if TYPE_CHECKING:
+    from flask import Flask
+    from werkzeug.serving import BaseWSGIServer
 
 from .diagnostics import (
     EXPECTED_MODEL_NUMBER,
@@ -1020,6 +1021,8 @@ class FollowerHostSnapshotProvider:
 
 def create_cached_app(provider: SnapshotProvider) -> Flask:
     """Create an HTTP/SSE app whose handlers only copy cached snapshots."""
+    from flask import Flask, Response, jsonify, render_template, request, stream_with_context
+
     app = Flask(__name__)
     app.config["TEMPLATES_AUTO_RELOAD"] = True
     app.jinja_env.auto_reload = True
@@ -1229,6 +1232,8 @@ class CachedDiagnosticsServer:
     def start(self) -> None:
         if self._server is not None:
             return
+        from werkzeug.serving import make_server
+
         self._server = make_server(self.host, self.port, self.app, threaded=True)
         self._thread = threading.Thread(
             target=self._server.serve_forever, name=f"lekiwi-diagnostics-{self.port}", daemon=True

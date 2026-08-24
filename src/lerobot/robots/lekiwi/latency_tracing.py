@@ -365,7 +365,9 @@ def trace_context_from_wire(value: Any) -> TraceContext | None:
     if not isinstance(value, dict) or not value.get("trace_id") or not value.get("session_id"):
         return None
     sequence = value.get("sequence")
-    return TraceContext(str(value["trace_id"]), str(value["session_id"]), int(sequence) if sequence is not None else None)
+    return TraceContext(
+        str(value["trace_id"]), str(value["session_id"]), int(sequence) if sequence is not None else None
+    )
 
 
 def _percentile(values: list[float], percentile: float) -> float:

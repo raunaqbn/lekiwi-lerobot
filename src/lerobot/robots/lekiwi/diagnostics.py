@@ -33,10 +33,10 @@ from copy import deepcopy
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from flask import Flask, Response, jsonify, render_template, request, stream_with_context
-from serial.tools import list_ports
+if TYPE_CHECKING:
+    from flask import Flask
 
 
 @dataclass(frozen=True)
@@ -320,6 +320,8 @@ class LeKiwiDiagnostics:
             self.scan_models = {baudrate: dict(self.discovered_models)}
 
     def ports(self) -> list[dict[str, Any]]:
+        from serial.tools import list_ports
+
         ports = [
             {
                 "device": port.device,
@@ -459,9 +461,7 @@ class LeKiwiDiagnostics:
 
             profile = self._detect_profile(motors)
             expected_ids = set(profile.expected_ids)
-            active_detected = sum(
-                motor["detected"] for motor in motors if motor["id"] in expected_ids
-            )
+            active_detected = sum(motor["detected"] for motor in motors if motor["id"] in expected_ids)
             for motor in motors:
                 motor["in_profile"] = motor["id"] in expected_ids
                 if self.connected and not motor["in_profile"]:
@@ -525,7 +525,11 @@ class LeKiwiDiagnostics:
                 "power": power,
                 "battery": estimate_battery(
                     round(
-                        sum(motor["voltage_v"] for motor in active_motors if motor.get("voltage_v") is not None)
+                        sum(
+                            motor["voltage_v"]
+                            for motor in active_motors
+                            if motor.get("voltage_v") is not None
+                        )
                         / sum(motor.get("voltage_v") is not None for motor in active_motors),
                         1,
                     )
@@ -1002,16 +1006,16 @@ def _as_source(snapshot: dict[str, Any], role: str, endpoint: str | None = None)
 
 
 def combine_snapshots(
-    local_snapshot: dict[str, Any], remote_snapshot: dict[str, Any] | None = None, remote_url: str | None = None
+    local_snapshot: dict[str, Any],
+    remote_snapshot: dict[str, Any] | None = None,
+    remote_url: str | None = None,
 ) -> dict[str, Any]:
     """Return the legacy local snapshot plus simultaneous leader/follower source views."""
     leader = _offline_source("leader")
     follower = _offline_source("follower", remote_url)
 
     local_role = (
-        "leader"
-        if local_snapshot.get("profile", {}).get("key") == SO101_LEADER_PROFILE.key
-        else "follower"
+        "leader" if local_snapshot.get("profile", {}).get("key") == SO101_LEADER_PROFILE.key else "follower"
     )
     if local_snapshot.get("connected") or local_snapshot.get("demo"):
         if local_role == "leader":
@@ -1114,7 +1118,10 @@ class RemoteDiagnosticsProxy:
             started = time.perf_counter()
             try:
                 request_ = urllib.request.Request(self.url or "", headers={"Accept": "application/json"})
-                with urllib.request.urlopen(request_, timeout=REMOTE_TIMEOUT_S) as response:
+                # normalize_url permits only explicit HTTP(S) schemes.
+                with urllib.request.urlopen(  # nosec B310
+                    request_, timeout=REMOTE_TIMEOUT_S
+                ) as response:
                     payload = json.loads(response.read().decode("utf-8"))
                 # A remote aggregator may include sources; use its follower source only.
                 if isinstance(payload.get("sources", {}).get("follower"), dict):
@@ -1139,6 +1146,8 @@ class RemoteDiagnosticsProxy:
 def create_app(
     service: LeKiwiDiagnostics | None = None, follower: RemoteDiagnosticsProxy | None = None
 ) -> Flask:
+    from flask import Flask, Response, jsonify, render_template, request, stream_with_context
+
     service = service or LeKiwiDiagnostics()
     follower = follower or RemoteDiagnosticsProxy()
     app = Flask(__name__)
@@ -1230,7 +1239,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--http-port", type=int, default=8090, help="HTTP port.")
     parser.add_argument(
         "--follower-url",
-        help="Remote follower diagnostics URL, for example http://10.0.0.104:8091.",
+        help="Remote follower diagnostics URL, for example http://lekiwi.local:8091.",
     )
     parser.add_argument(
         "--demo", action="store_true", help="Show simulated diagnostic data without hardware."

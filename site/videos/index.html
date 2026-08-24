@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="A narrated, web-native explanation of the LeKiwi diagnostics and teleoperation architecture."
+    />
+    <title>LeKiwi — System explained</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1f2be0;
+        --paper: #f0ebde;
+        --dark: #121521;
+        --line: rgba(31, 43, 224, 0.22);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        color: var(--dark);
+        background:
+          linear-gradient(var(--line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px), var(--paper);
+        background-size: 40px 40px;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+      a {
+        color: inherit;
+      }
+      .shell {
+        width: min(1180px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 82px;
+        border-bottom: 2px solid var(--ink);
+      }
+      .brand,
+      .eyebrow {
+        color: var(--ink);
+        font:
+          700 0.78rem/1.2 ui-monospace,
+          monospace;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+      .back {
+        text-decoration: none;
+        border-bottom: 1px solid currentColor;
+      }
+      main {
+        padding: 84px 0 96px;
+      }
+      h1 {
+        max-width: 880px;
+        margin: 18px 0 24px;
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(3.8rem, 10vw, 8.7rem);
+        font-weight: 400;
+        line-height: 0.85;
+        letter-spacing: -0.055em;
+      }
+      .intro {
+        max-width: 760px;
+        font-size: clamp(1.1rem, 2vw, 1.42rem);
+        line-height: 1.55;
+      }
+      .player-wrap {
+        margin: 54px 0 30px;
+        padding: 10px;
+        border: 3px solid var(--ink);
+        background: var(--ink);
+        box-shadow: 14px 14px 0 rgba(31, 43, 224, 0.18);
+      }
+      .player {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border: 0;
+        background: #000;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 28px 0 80px;
+      }
+      .button {
+        display: inline-flex;
+        align-items: center;
+        min-height: 48px;
+        padding: 0 20px;
+        border: 2px solid var(--ink);
+        color: var(--ink);
+        background: var(--paper);
+        text-decoration: none;
+        font-weight: 750;
+      }
+      .button.primary {
+        color: var(--paper);
+        background: var(--ink);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 18px;
+      }
+      .chapter {
+        grid-column: span 6;
+        padding: 26px;
+        border: 2px solid var(--ink);
+        background: rgba(240, 235, 222, 0.94);
+      }
+      .chapter .time {
+        color: var(--ink);
+        font:
+          700 0.78rem ui-monospace,
+          monospace;
+        letter-spacing: 0.1em;
+      }
+      .chapter h2 {
+        margin: 14px 0 10px;
+        color: var(--ink);
+        font:
+          400 2.1rem/1 Georgia,
+          serif;
+      }
+      .chapter p {
+        margin: 0;
+        line-height: 1.58;
+      }
+      .note {
+        margin-top: 18px;
+        padding: 24px;
+        color: var(--paper);
+        background: var(--ink);
+        line-height: 1.55;
+      }
+      footer {
+        padding: 32px 0 50px;
+        border-top: 2px solid var(--ink);
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+      @media (max-width: 760px) {
+        main {
+          padding-top: 56px;
+        }
+        header {
+          align-items: flex-start;
+          flex-direction: column;
+          justify-content: center;
+          gap: 8px;
+        }
+        .chapter {
+          grid-column: 1 / -1;
+        }
+        .player-wrap {
+          margin-top: 38px;
+          box-shadow: 8px 8px 0 rgba(31, 43, 224, 0.18);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="shell">
+      <span class="brand">LeKiwi / visual field guide</span>
+      <a class="back" href="../">← Back to documentation</a>
+    </header>
+    <main class="shell">
+      <div class="eyebrow">Narrated HTML composition · 2:03</div>
+      <h1>System explained.</h1>
+      <p class="intro">
+        A source-backed tour of the signals that matter: online versus flowing,
+        controller power versus servo-rail power, leader and follower voltage,
+        battery uncertainty, the clickable twin, dashboard takeover, and the
+        boundary between cloud reachability and real-time motor ownership.
+      </p>
+
+      <div class="player-wrap">
+        <iframe
+          class="player"
+          title="LeKiwi system explained"
+          src="./player/"
+          loading="eager"
+          allow="autoplay; fullscreen"
+          allowfullscreen
+        ></iframe>
+      </div>
+      <div class="actions">
+        <a class="button primary" href="./player/">Open the HTML video ↗</a>
+        <a
+          class="button"
+          href="https://github.com/raunaqbn/lekiwi-lerobot/tree/main/videos/lekiwi-system-explained"
+          >Inspect every source frame ↗</a
+        >
+        <a
+          class="button"
+          href="https://www.hyperframes.dev/p/3b6e8464-0cf2-46c3-9450-28bda810ebd2"
+          >Import the published project ↗</a
+        >
+        <a class="button" href="#chapters">Read the chapter guide</a>
+      </div>
+
+      <section id="chapters">
+        <div class="eyebrow">Chapter guide</div>
+        <div class="grid">
+          <article class="chapter">
+            <span class="time">00:00—00:12</span>
+            <h2>Observed, not assumed</h2>
+            <p>
+              A socket can be connected while command bytes are idle. The app
+              keeps online, powered, flowing, and safe as different statements.
+            </p>
+          </article>
+          <article class="chapter">
+            <span class="time">00:12—00:28</span>
+            <h2>One bus owner</h2>
+            <p>
+              The 30 Hz owner loop samples motors and publishes immutable
+              snapshots. HTTP, SSE, cameras, and iOS never open the serial bus
+              from request handlers.
+            </p>
+          </article>
+          <article class="chapter">
+            <span class="time">00:28—00:46</span>
+            <h2>Source-labeled truth</h2>
+            <p>
+              A roughly 5 V leader and a roughly 10–12.6 V follower can both be
+              healthy. The display preserves source, profile, freshness, and
+              expected topology.
+            </p>
+          </article>
+          <article class="chapter">
+            <span class="time">00:46—01:03</span>
+            <h2>Battery as a band</h2>
+            <p>
+              The estimate uses follower voltage samples and reports
+              uncertainty. Encoder calibration cannot magically provide battery
+              capacity or runtime.
+            </p>
+          </article>
+          <article class="chapter">
+            <span class="time">01:03—01:24</span>
+            <h2>Twin and takeover</h2>
+            <p>
+              The 3D twin maps current joint state to selectable robot parts.
+              Dashboard arm takeover intentionally replaces manual leader goals
+              until Stop releases it.
+            </p>
+          </article>
+          <article class="chapter">
+            <span class="time">01:24—02:03</span>
+            <h2>Cloud boundary and release</h2>
+            <p>
+              Cloudflare, Vercel, and Pages can host documentation or protect a
+              tunnel. Serial ownership, watchdogs, and the control loop remain
+              beside the robot.
+            </p>
+          </article>
+        </div>
+        <div class="note">
+          Safety note: software controls are not an emergency stop. Begin with
+          all wheels lifted, the arm envelope clear, and a physical power cutoff
+          in reach.
+        </div>
+      </section>
+    </main>
+    <footer class="shell">
+      Apache-2.0 community fork. Composition, narration timings, captions,
+      fonts, and generated audio sources are versioned with their license
+      notices in the repository.
+    </footer>
+  </body>
+</html>

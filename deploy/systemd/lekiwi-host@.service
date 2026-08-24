@@ -1,0 +1,28 @@
+[Unit]
+Description=LeKiwi follower host and embedded diagnostics for %i
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory=/home/%i/lekiwi
+EnvironmentFile=-/home/%i/.config/lekiwi/host.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/%i/lekiwi/.venv/bin/python -m lerobot.robots.lekiwi.lekiwi_host --robot.id=lekiwi
+Restart=on-failure
+RestartSec=3
+KillSignal=SIGINT
+TimeoutStopSec=15
+
+# Motor control should never receive public inbound traffic directly. Put
+# Cloudflare Tunnel or a VPN in front of the diagnostics port when needed.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/%i/.cache /home/%i/.config/lekiwi
+SupplementaryGroups=dialout video
+
+[Install]
+WantedBy=multi-user.target

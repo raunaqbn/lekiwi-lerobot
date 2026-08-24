@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lekiwi-mobile-auth",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-10",
+  "workers_dev": true,
+  "vars": {
+    "TEAM_DOMAIN": "https://YOUR_TEAM.cloudflareaccess.com",
+    "POLICY_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUD",
+    "CALLBACK_SCHEME": "io.lekiwi.controller"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

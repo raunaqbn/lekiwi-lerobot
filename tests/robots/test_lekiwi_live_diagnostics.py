@@ -7,6 +7,8 @@ from dataclasses import dataclass
 
 import pytest
 
+pytest.importorskip("flask")
+
 from lerobot.robots.lekiwi.lekiwi_client import LeKiwiClient, ProtocolCompatibilityError
 from lerobot.robots.lekiwi.live_diagnostics import (
     HEALTH_REGISTERS,

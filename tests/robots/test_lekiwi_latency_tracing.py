@@ -5,6 +5,10 @@ import sqlite3
 import time
 from collections import OrderedDict
 
+import pytest
+
+pytest.importorskip("flask")
+
 from lerobot.robots.lekiwi.latency_tracing import (
     TRACE_SCHEMA_VERSION,
     LatencyTraceRecorder,
@@ -97,9 +101,7 @@ def test_dashboard_trace_is_consumed_once_by_owner_loop():
 
 def test_client_correlates_command_with_host_pipeline_and_network_residual(tmp_path):
     client = LeKiwiClient.__new__(LeKiwiClient)
-    client.latency = LatencyTraceRecorder(
-        tmp_path, role="client", node="test-client", session_id="session-1"
-    )
+    client.latency = LatencyTraceRecorder(tmp_path, role="client", node="test-client", session_id="session-1")
     client.diagnostics_cache = MutableSnapshotCache("follower")
     client.camera_cache = MutableCameraFrameCache(())
     client._latest_trace_context = None
@@ -113,9 +115,10 @@ def test_client_correlates_command_with_host_pipeline_and_network_residual(tmp_p
         "_trace": context.wire(host_pipeline_ns=4_000_000),
         "x.vel": 0.0,
     }
-    assert client._parse_observation(
-        [json.dumps(header).encode()], received_monotonic_ns=sent_ns + 10_000_000
-    ) is not None
+    assert (
+        client._parse_observation([json.dumps(header).encode()], received_monotonic_ns=sent_ns + 10_000_000)
+        is not None
+    )
     client.latency.close()
     names = {record["name"] for record in load_records([tmp_path])}
     assert {
@@ -137,9 +140,7 @@ def test_loader_rejects_malformed_trace_json(tmp_path):
 
 
 def test_motion_response_is_measured_from_existing_feedback_only(tmp_path):
-    recorder = LatencyTraceRecorder(
-        tmp_path, role="host", node="test-host", session_id="session-1"
-    )
+    recorder = LatencyTraceRecorder(tmp_path, role="host", node="test-host", session_id="session-1")
     tracker = MotionResponseTracker(recorder)
     context = TraceContext("motion-1", "session-1", 1)
     baseline = {"arm_elbow_flex.pos": 10.0, "x.vel": 0.0}
@@ -149,17 +150,11 @@ def test_motion_response_is_measured_from_existing_feedback_only(tmp_path):
         baseline,
         written_ns=1_000_000_000,
     )
-    assert not tracker.observe(
-        {"arm_elbow_flex.pos": 10.1, "x.vel": 0.0}, observed_ns=1_010_000_000
-    )
-    assert tracker.observe(
-        {"arm_elbow_flex.pos": 10.5, "x.vel": 0.0}, observed_ns=1_020_000_000
-    )
+    assert not tracker.observe({"arm_elbow_flex.pos": 10.1, "x.vel": 0.0}, observed_ns=1_010_000_000)
+    assert tracker.observe({"arm_elbow_flex.pos": 10.5, "x.vel": 0.0}, observed_ns=1_020_000_000)
     recorder.close()
     span = next(
-        record
-        for record in load_records([tmp_path])
-        if record["name"] == "command_to_observed_motion"
+        record for record in load_records([tmp_path]) if record["name"] == "command_to_observed_motion"
     )
     assert span["duration_ns"] == 20_000_000
     assert span["attributes"]["sampling_upper_bound"] is True
@@ -207,10 +202,6 @@ def test_browser_round_trip_is_flushed_on_the_next_control_request(tmp_path):
     )
     assert response.status_code == 200
     provider.latency.close()
-    span = next(
-        record
-        for record in load_records([tmp_path])
-        if record["name"] == "browser_control_rtt"
-    )
+    span = next(record for record in load_records([tmp_path]) if record["name"] == "browser_control_rtt")
     assert span["trace_id"] == "browser-1"
     assert span["duration_ns"] == 42_500_000

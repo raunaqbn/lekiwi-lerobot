@@ -1,0 +1,58 @@
+{
+  "lines": [
+    {
+      "id": "01",
+      "sfx": [
+        "relay-click",
+        "low-system-pulse"
+      ]
+    },
+    {
+      "id": "02",
+      "sfx": [
+        "connector-seat",
+        "soft-data-ticks"
+      ]
+    },
+    {
+      "id": "03",
+      "sfx": [
+        "ledger-stamp",
+        "short-register-ticks"
+      ]
+    },
+    {
+      "id": "04",
+      "sfx": [
+        "nine-soft-ticks",
+        "band-bloom"
+      ]
+    },
+    {
+      "id": "05",
+      "sfx": [
+        "servo-select",
+        "routing-switch",
+        "stop-click"
+      ]
+    },
+    {
+      "id": "06",
+      "sfx": [
+        "boundary-draw",
+        "tunnel-whoosh"
+      ]
+    },
+    {
+      "id": "07",
+      "sfx": [
+        "file-stack",
+        "key-ticks",
+        "physical-switch"
+      ]
+    }
+  ],
+  "bgm": {
+    "mode": "none"
+  }
+}

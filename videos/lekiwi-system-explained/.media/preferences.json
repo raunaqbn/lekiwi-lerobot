@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "preferences": {
+    "flow": {
+      "value": "automation",
+      "confirmed_in": [
+        "lekiwi-system-explained"
+      ],
+      "updated_at": "2026-08-24T01:30:22.368Z"
+    },
+    "storyboard": {
+      "value": "no",
+      "confirmed_in": [
+        "lekiwi-system-explained"
+      ],
+      "updated_at": "2026-08-24T01:30:22.408Z"
+    }
+  },
+  "sightings": {}
+}

@@ -1,0 +1,18 @@
+LeKiwi Diagnostics + Teleoperation
+Copyright 2026 Raunaq Naidu and contributors
+
+This product includes software developed by Hugging Face, Inc. and the
+contributors to LeRobot (https://github.com/huggingface/lerobot).
+
+This product includes Three.js, Copyright 2010-2025 Three.js authors,
+distributed under the MIT License.
+
+This product includes URDF Loader by Gareth Johnson and contributors,
+distributed under the Apache License 2.0.
+
+The included LeKiwi URDF and mesh export is distributed under the Apache
+License 2.0. Source-specific license texts are retained beside vendored files.
+
+Hugging Face, LeRobot, Three.js, and other names may be trademarks of their
+respective owners. This NOTICE provides attribution and does not grant any
+trademark rights.

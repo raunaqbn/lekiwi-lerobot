@@ -1,0 +1,4 @@
+[Service]
+# Copy this file to latency.conf and replace <user> before enabling traces.
+ExecStart=
+ExecStart=/home/<user>/lekiwi/.venv/bin/python -m lerobot.robots.lekiwi.lekiwi_host --robot.id=lekiwi --host.latency_trace_dir=/home/<user>/.local/state/lekiwi/latency
