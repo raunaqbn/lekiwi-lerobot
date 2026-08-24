@@ -326,13 +326,9 @@ def main(cfg: LeKiwiServerConfig):
                     cycle_trace,
                     attributes={"jpeg_bytes": len(encoded)},
                 )
-            latency.record_span(
-                "camera_encode_total", encode_start_ns, time.perf_counter_ns(), cycle_trace
-            )
+            latency.record_span("camera_encode_total", encode_start_ns, time.perf_counter_ns(), cycle_trace)
             host_send_start_ns = time.perf_counter_ns()
-            host_pipeline_ns = (
-                host_send_start_ns - host_receive_ns if host_receive_ns is not None else None
-            )
+            host_pipeline_ns = host_send_start_ns - host_receive_ns if host_receive_ns is not None else None
             header = {
                 "_protocol": PROTOCOL_VERSION,
                 "_diagnostics": diagnostics.snapshot(),

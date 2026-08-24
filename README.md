@@ -128,7 +128,7 @@ The diagnostics memory file is stored under `HF_LEROBOT_HOME` (or the default Le
 | Public docs/demo         | GitHub Pages, Cloudflare, Vercel | Static HTML only                    |
 | Native field controller  | Xcode + optional auth Worker     | iOS client; commands still go to Pi |
 
-See [`deploy/README.md`](./deploy/README.md) for systemd, Docker, Cloudflare, Vercel, and generic static-host instructions. The detailed visual guide lives in [`site/index.html`](./site/index.html).
+See [`deploy/README.md`](./deploy/README.md) for systemd, Docker, Cloudflare, Vercel, and generic static-host instructions. The detailed visual guide lives in [`site/index.html`](./site/index.html), with a narrated, web-native explainer in [`videos/lekiwi-system-explained`](./videos/lekiwi-system-explained).
 
 ## Development
 

@@ -139,8 +139,7 @@ ipython_config.py
 # Sphinx
 docs/_build/
 
-# MkDocs
-/site
+# The LeKiwi public guide is intentionally versioned under /site.
 
 # PyBuilder
 .pybuilder/

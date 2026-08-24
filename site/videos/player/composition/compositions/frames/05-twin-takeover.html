@@ -1,0 +1,283 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Hanken Grotesk";
+      src: url("capture/assets/fonts/hanken-grotesk-latin-wght-normal.woff2")
+        format("woff2");
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "Newsreader";
+      src: url("capture/assets/fonts/newsreader-latin-wght-normal.woff2")
+        format("woff2");
+      font-style: normal;
+      font-weight: 200 800;
+      font-display: block;
+    }
+    #f05 {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      color: #1f2be0;
+      font-family: "Hanken Grotesk", Arial, sans-serif;
+    }
+    .f05-bg {
+      position: absolute;
+      inset: 0;
+      background: #f0ebde;
+      background-image:
+        linear-gradient(rgba(31, 43, 224, 0.1) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(31, 43, 224, 0.1) 2px, transparent 2px);
+      background-size: 40px 40px;
+    }
+    .f05-title {
+      position: absolute;
+      left: 90px;
+      top: 60px;
+      font:
+        400 78px Newsreader,
+        Georgia,
+        serif;
+    }
+    .f05-robot {
+      position: absolute;
+      left: 120px;
+      top: 210px;
+      width: 850px;
+      height: 670px;
+    }
+    .f05-robot path {
+      fill: none;
+      stroke: #1f2be0;
+      stroke-width: 25;
+      stroke-linecap: round;
+    }
+    .f05-robot circle {
+      fill: #f0ebde;
+      stroke: #1f2be0;
+      stroke-width: 12;
+    }
+    .f05-panel {
+      position: absolute;
+      right: 110px;
+      top: 210px;
+      width: 700px;
+      height: 680px;
+      border: 4px solid #1f2be0;
+      background: #f0ebde;
+      padding: 34px;
+    }
+    .f05-selected {
+      font:
+        24px "DM Mono",
+        monospace;
+      letter-spacing: 0.12em;
+    }
+    .f05-joint {
+      font:
+        400 64px Newsreader,
+        Georgia,
+        serif;
+      margin: 18px 0 34px;
+    }
+    .f05-route {
+      height: 100px;
+      border: 3px solid #1f2be0;
+      margin: 18px 0;
+      padding: 24px;
+      font:
+        24px "DM Mono",
+        monospace;
+      position: relative;
+    }
+    .f05-route strong {
+      font-size: 32px;
+    }
+    .f05-switch {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 3px solid #1f2be0;
+      margin-top: 34px;
+      padding-top: 25px;
+      font:
+        26px "DM Mono",
+        monospace;
+    }
+    .f05-toggle {
+      width: 170px;
+      height: 66px;
+      border: 4px solid #1f2be0;
+      padding: 5px;
+    }
+    .f05-knob {
+      width: 50px;
+      height: 48px;
+      background: #1f2be0;
+    }
+    .f05-stop {
+      position: absolute;
+      right: 145px;
+      bottom: 105px;
+      width: 630px;
+      height: 100px;
+      background: #1f2be0;
+      color: #f0ebde;
+      display: grid;
+      place-items: center;
+      font:
+        400 48px Newsreader,
+        Georgia,
+        serif;
+    }
+  </style>
+  <div
+    data-hf-id="hf-ons9"
+    id="f05"
+    data-composition-id="05-twin-takeover"
+    data-start="0"
+    data-duration="21.006"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div
+      data-hf-id="hf-x8kq"
+      class="clip f05-bg"
+      data-start="0"
+      data-duration="21.006"
+      data-track-index="0"
+    ></div>
+    <div
+      data-hf-id="hf-nkg5"
+      class="clip f05-title"
+      data-start="0"
+      data-duration="21.006"
+      data-track-index="1"
+    >
+      The twin sees pose. Takeover chooses goals.
+    </div>
+    <svg
+      data-hf-id="hf-m5ax"
+      class="clip f05-robot"
+      data-start="0"
+      data-duration="21.006"
+      data-track-index="2"
+      viewBox="0 0 850 670"
+    >
+      <path
+        data-hf-id="hf-qqd4"
+        d="M110 550h560M210 550v-110h150v110M285 440L180 320M180 320l130-150M310 170l190-70M500 100l140 55"
+      />
+      <circle data-hf-id="hf-sgbq" cx="285" cy="440" r="34" />
+      <circle data-hf-id="hf-cwm3" cx="180" cy="320" r="34" />
+      <circle data-hf-id="hf-5p5h" cx="310" cy="170" r="34" />
+      <circle data-hf-id="hf-5vg0" cx="500" cy="100" r="28" />
+      <circle data-hf-id="hf-fljd" cx="640" cy="155" r="24" />
+      <circle data-hf-id="hf-kg4i" cx="110" cy="565" r="55" />
+      <circle data-hf-id="hf-bmlf" cx="670" cy="565" r="55" />
+    </svg>
+    <div
+      data-hf-id="hf-0tto"
+      class="clip f05-panel"
+      data-start="0"
+      data-duration="21.006"
+      data-track-index="3"
+    >
+      <div data-hf-id="hf-p835" class="f05-selected">SELECTED / MOTOR ID 2</div>
+      <div data-hf-id="hf-zfx9" class="f05-joint">Shoulder lift</div>
+      <div data-hf-id="hf-ka02" class="f05-route f05-leader">
+        <strong data-hf-id="hf-utpz">LEADER GOALS</strong> → FOLLOWER
+      </div>
+      <div data-hf-id="hf-ikby" class="f05-route f05-hold">
+        <strong data-hf-id="hf-7u36">HOLD / JOG</strong> → FOLLOWER
+      </div>
+      <div data-hf-id="hf-lcog" class="f05-switch">
+        <span data-hf-id="hf-ptnu">ARM TAKEOVER</span>
+        <div data-hf-id="hf-4wk0" class="f05-toggle">
+          <div data-hf-id="hf-e87k" class="f05-knob"></div>
+        </div>
+      </div>
+    </div>
+    <div
+      data-hf-id="hf-u2ib"
+      class="clip f05-stop"
+      data-start="0"
+      data-duration="21.006"
+      data-track-index="4"
+    >
+      STOP → RELEASE TAKEOVER
+    </div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    (() => {
+      const t = gsap.timeline({ paused: true });
+      t.fromTo(
+        ".f05-title",
+        { opacity: 0, x: -55 },
+        { opacity: 1, x: 0, duration: 1, ease: "power3.out" },
+        0,
+      )
+        .fromTo(
+          ".f05-robot path",
+          { strokeDasharray: 1400, strokeDashoffset: 1400 },
+          { strokeDashoffset: 0, duration: 2.8, ease: "power2.out" },
+          1,
+        )
+        .fromTo(
+          ".f05-robot circle",
+          { opacity: 0, scale: 0.3 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.5,
+            stagger: 0.35,
+            ease: "power3.out",
+            transformOrigin: "center",
+          },
+          3.5,
+        )
+        .fromTo(
+          ".f05-panel",
+          { opacity: 0, x: 90 },
+          { opacity: 1, x: 0, duration: 1, ease: "power3.out" },
+          6.4,
+        )
+        .fromTo(
+          ".f05-leader",
+          { backgroundColor: "#1F2BE0", color: "#F0EBDE" },
+          { backgroundColor: "#F0EBDE", color: "#1F2BE0", duration: 0.5 },
+          10,
+        )
+        .to(".f05-knob", { x: 105, duration: 0.55, ease: "power3.out" }, 10)
+        .fromTo(
+          ".f05-hold",
+          { opacity: 0.25, x: 45 },
+          { opacity: 1, x: 0, duration: 0.7, ease: "power3.out" },
+          10.1,
+        )
+        .to(".f05-leader", { opacity: 0.3, duration: 0.5 }, 10.2)
+        .fromTo(
+          ".f05-stop",
+          { opacity: 0, y: 70 },
+          { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" },
+          15,
+        )
+        .to(".f05-knob", { x: 0, duration: 0.55, ease: "power3.out" }, 16.8)
+        .to(
+          ".f05-leader",
+          {
+            opacity: 1,
+            backgroundColor: "#1F2BE0",
+            color: "#F0EBDE",
+            duration: 0.5,
+          },
+          17,
+        );
+      window.__timelines["05-twin-takeover"] = t;
+    })();
+  </script>
+</template>
